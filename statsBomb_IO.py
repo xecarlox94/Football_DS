@@ -20,7 +20,7 @@ def getMatches(competition):
         matches = json.load(f)
     return matches
 
-def getMatchLineup(match):
+def getMatchLineups(match):
     lineupFile_url = lineups_dir + str(match['match_id']) + ".json"
     with open(lineupFile_url, "r", encoding="utf-8") as f:
         lineup = json.load(f)
@@ -32,15 +32,8 @@ def getMatchEvents(match):
         events = json.load(f)
     return events
 
-competitions = getCompetitions()
 
-matches = getMatches(competitions[26])
 
-match = matches[27]
-
-lineup = getMatchLineup(match)
-
-events = getMatchEvents(match)
 
 
 
