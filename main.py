@@ -18,3 +18,7 @@ for e in events:
         eventTypes[typeEvent] = eventTypes[typeEvent] + 1
     else:
         eventTypes[typeEvent] = 1
+
+
+
+pitch.createPitch()

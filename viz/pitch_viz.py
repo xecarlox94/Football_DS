@@ -93,5 +93,4 @@ def createPitch( width=130, height=90, spotSize = 0.7, lineColor = "black"):
     plt.show()
     
     return (fig, ax)
-    
-createPitch()
+
