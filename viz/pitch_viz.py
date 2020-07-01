@@ -13,7 +13,7 @@ def createPitch( width=130, height=90, spotSize = 0.7, lineColor = "black"):
     halfHeight = height/2
     penDistance = 11
     penArcSz = 18.3
-    centerCircleSz = 15
+    centerCircleSz = 13
     
     boxSize = (40, 16.5)
     smBoxSize = (18, 5.5)
@@ -89,8 +89,5 @@ def createPitch( width=130, height=90, spotSize = 0.7, lineColor = "black"):
     
     plt.axis('off')
     
-    #render plot
-    plt.show()
-    
-    return (fig, ax)
+    return fig, ax, plt
 
