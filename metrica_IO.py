@@ -1,5 +1,6 @@
 import pandas as pd
 import csv as csv
+import scipy.signal as signal
 import numpy as np
 
 DATA_DIR = "data/metrica_sports/data"
@@ -8,9 +9,24 @@ def readMatchData(game_id):
     track_home = trackingData(game_id,"Home")
     track_away = trackingData(game_id,"Away")
 
+    tracking = mergeTrackingData(track_home, track_away)
+
     events = eventData(game_id)
 
-    return events, track_home.drop(columns=['ball_x', 'ball_y']).merge(track_away, left_index=True, right_index=True)
+    return events, tracking
+
+
+def eventData(game_id):
+    eventFile = 'Sample_Game_%d/Sample_Game_%d_RawEventsData.csv' % (game_id, game_id)
+    events = pd.read_csv('{}/{}'.format(DATA_DIR, eventFile))
+    return events
+
+
+def mergeTrackingData(home, away):
+    home.drop(columns=['ball_x', 'ball_y'])
+
+    home.merge(away, left_index=True, right_index=True)
+    return home
 
 
 def trackingData(game_id, team):
@@ -35,7 +51,4 @@ def trackingData(game_id, team):
     return tracking
 
 
-def eventData(game_id):
-    eventFile = 'Sample_Game_%d/Sample_Game_%d_RawEventsData.csv' % (game_id, game_id)
-    events = pd.read_csv('{}/{}'.format(DATA_DIR, eventFile))
-    return events
+#def calcVelocities
