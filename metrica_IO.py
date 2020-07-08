@@ -10,13 +10,12 @@ def readMatchData(game_id, pitchDimensions):
     track_away = trackingData(game_id,"Away")
 
     tracking = mergeTrackingData(track_home, track_away)
+    tracking = convert_to_pSize(tracking, pitchDimensions)
 
     events = eventData(game_id)
-    
-    tracking = convert_to_pSize(tracking, pitchDimensions)
     events = convert_to_pSize(events, pitchDimensions)
 
-    return events, tracking
+    return events, tracking, (track_home,track_home)
 
 
 def eventData(game_id):
@@ -55,13 +54,10 @@ def trackingData(game_id, team):
     columns[-1] = "ball_y"
 
     tracking = pd.read_csv('{}/{}'.format(DATA_DIR, trackFile), names=columns, index_col="Frame", skiprows=3)
+    tracking = rmvTrackSpeeds(tracking)
     
     return tracking
 
-def rmvTrackSpeeds(track_team):
-    columns = [c for c in track_team.columns if c.split('_')[-1] in ['vx','vy','ax','ay','speed','acceleration']]
-    track_team = track_team.drop(columns=columns)
-    return track_team
 
 def convert_to_pSize(data, pitchDimensions):
     x_columns = [ c for c in data.columns if c[-1].lower() == 'x']
@@ -73,4 +69,12 @@ def convert_to_pSize(data, pitchDimensions):
     return data
 
 
-#def calcVelocities(track_team, smothing=True, filter_='Savitsky-Golay', window=7, polyorder=1, maxspeed=12):
+def rmvTrackSpeeds(track_team):
+    columns = [c for c in track_team.columns if c.split('_')[-1] in ['vx','vy','ax','ay','speed','acceleration']]
+    
+    return track_team.drop(columns=columns)
+    
+
+def calcVelocities(track_team, smothing=True, filter_='Savitsky-Golay', window=7, polyorder=1, maxspeed=12):
+    
+    return track_team
