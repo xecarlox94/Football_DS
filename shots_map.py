@@ -3,9 +3,9 @@ import numpy as np
 import pandas as pd
 from viz import pitch_viz as pitch
 
-competition = sb.getCompetitions()[26]
+competition = sb.getCompetitions()[23]
 
-match = sb.getMatches(competition)[27]
+match = sb.getMatches(competition)[20]
 
 lineups = sb.getMatchLineups(match)
 

@@ -89,5 +89,5 @@ def createPitch( width=130, height=90, spotSize = 0.7, lineColor = "black"):
     
     plt.axis('off')
     
-    return fig, ax, plt
+    return fig, ax, plt, (width,height)
 

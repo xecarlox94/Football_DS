@@ -2,9 +2,9 @@ import statsBomb_IO as sb
 import pandas as pd
 from viz import pitch_viz as pitch
 
-competition = sb.getCompetitions()[26]
+competition = sb.getCompetitions()[23]
 
-match = sb.getMatches(competition)[27]
+match = sb.getMatches(competition)[20]
 
 lineups = sb.getMatchLineups(match)
 
@@ -20,9 +20,9 @@ df = pd.json_normalize(events, sep = "_").assign(match_id = match['match_id']).s
 
 passes = df.loc[df['type_id'] == 30]
 
-xavi_passes = []
+
 for passe in passes.iterrows():
-    if passe[1]['player_id'] == 5216:
+    if passe[1]['player_id'] == 2995:
         x = passe[1]['location'][0]
         y = passe[1]['location'][1]
         passCircle = plt.Circle((x, y),1,color="blue")
@@ -30,6 +30,7 @@ for passe in passes.iterrows():
         ax.add_patch(passCircle)
         dx = passe[1]['pass_end_location'][0]
         dy = passe[1]['pass_end_location'][1]
+        print(x,y,dx,dy)
         passArrow = plt.Arrow(x,y,dx,dy,width=1.5, color="blue")
         ax.add_patch(passArrow)
 
