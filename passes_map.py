@@ -2,9 +2,9 @@ import statsBomb_IO as sb
 import pandas as pd
 from viz import pitch_viz as pitch
 
-competition = sb.getCompetitions()[23]
+competition = sb.getCompetitions()[26]
 
-match = sb.getMatches(competition)[20]
+match = sb.getMatches(competition)[27]
 
 lineups = sb.getMatchLineups(match)
 
@@ -14,7 +14,7 @@ homeTeamName = match['home_team']['home_team_name']
 awayTeamName = match['away_team']['away_team_name']
 
 pitchSz = (130, 90)
-fig, ax, plt = pitch.createPitch(pitchSz[0], pitchSz[1])
+fig, ax, plt, _ = pitch.createPitch(pitchSz[0], pitchSz[1])
 
 df = pd.json_normalize(events, sep = "_").assign(match_id = match['match_id']).set_index('id')
 
@@ -22,17 +22,16 @@ passes = df.loc[df['type_id'] == 30]
 
 
 for passe in passes.iterrows():
-    if passe[1]['player_id'] == 2995:
+    if passe[1]['player_id'] == 5552:
+        print()
+        print(passe[1])
         x = passe[1]['location'][0]
         y = passe[1]['location'][1]
-        passCircle = plt.Circle((x, y),1,color="blue")
-        passCircle.set_alpha(0.2)
-        ax.add_patch(passCircle)
         dx = passe[1]['pass_end_location'][0]
         dy = passe[1]['pass_end_location'][1]
         print(x,y,dx,dy)
-        passArrow = plt.Arrow(x,y,dx,dy,width=1.5, color="blue")
-        ax.add_patch(passArrow)
+        ax.plot(x, y, 'ro')
+        ax.annotate("", xy=(dx,dy), xytext=(x,y), alpha=0.6, arrowprops=dict(arrowstyle="->",color='r'))
 
 
 fig.set_size_inches(10,7)
