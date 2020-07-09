@@ -15,7 +15,7 @@ def readMatchData(game_id, pitchDimensions):
     events = eventData(game_id)
     events = convert_to_pSize(events, pitchDimensions)
 
-    return events, (track_home,track_home)
+    return events, (track_home,track_away)
 
 
 def eventData(game_id):

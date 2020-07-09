@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Arc
 
 
-def createPitch( width=130, height=90, spotSize = 0.7, lineColor = "black"):
+def createPitch( width=130, height=90, spotSize = 0.3, lineColor = "black"):
     halfWidth = width/2
     halfHeight = height/2
     penDistance = 11
@@ -89,7 +89,6 @@ def createPitch( width=130, height=90, spotSize = 0.7, lineColor = "black"):
     ax.add_patch(rightPenSpot)
     
     plt.axis('off')
-    
     
     pitchDimen = (width,height)
     figaxplt = (fig, ax, plt)

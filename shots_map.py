@@ -15,7 +15,8 @@ homeTeamName = match['home_team']['home_team_name']
 awayTeamName = match['away_team']['away_team_name']
 
 pitchSz = (120, 80)
-fig, ax, plt = pitch.createPitch(pitchSz[0], pitchSz[1])
+(figaxplt, pdimen) = pitch.createPitch(pitchSz[0], pitchSz[1])
+(fig, ax, plt) = figaxplt
 
 df = pd.json_normalize(events, sep = "_").assign(match_id = match['match_id']).set_index('id')
 
