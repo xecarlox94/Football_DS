@@ -8,14 +8,14 @@ DATA_DIR = "data/metrica_sports/data"
 def readMatchData(game_id, pitchDimensions):
     track_home = trackingData(game_id,"Home")
     track_away = trackingData(game_id,"Away")
-
-    tracking = mergeTrackingData(track_home, track_away)
-    tracking = convert_to_pSize(tracking, pitchDimensions)
+    
+    track_home = convert_to_pSize(track_home, pitchDimensions)
+    track_away = convert_to_pSize(track_away, pitchDimensions)
 
     events = eventData(game_id)
     events = convert_to_pSize(events, pitchDimensions)
 
-    return events, tracking, (track_home,track_home)
+    return events, (track_home,track_home)
 
 
 def eventData(game_id):

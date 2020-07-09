@@ -8,8 +8,6 @@ Created on Wed Jun 24 15:36:13 2020
 import matplotlib.pyplot as plt
 from matplotlib.patches import Arc
 
-def createPitch( pitchSize=(130,90), spotSize = 0.7, lineColor = "black"):
-    return createPitch(pitchSize[0], pitchSize[1], spotSize, lineColor)
 
 def createPitch( width=130, height=90, spotSize = 0.7, lineColor = "black"):
     halfWidth = width/2
@@ -92,5 +90,9 @@ def createPitch( width=130, height=90, spotSize = 0.7, lineColor = "black"):
     
     plt.axis('off')
     
-    return fig, ax, plt, (width,height)
+    
+    pitchDimen = (width,height)
+    figaxplt = (fig, ax, plt)
+    
+    return figaxplt, pitchDimen
 
