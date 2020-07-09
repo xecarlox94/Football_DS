@@ -91,7 +91,7 @@ fig.set_size_inches(15,10)
 #ax.plot( events.loc[198]['Start X'], events.loc[198]['Start Y'], 'ro' )
 #ax.annotate("", xy=events.loc[198][['End X','End Y']], xytext=events.loc[198][['Start X', 'Start Y']], alpha=0.6, arrowprops=dict(arrowstyle="->", color='r'))
 
-#plot_events(events.loc[190:198], figax=(fig, ax), pitchSize=pdimen)
+#(fig, ax) = plot_events(events.loc[190:198], figax=(fig, ax), pitchSize=pdimen)
 
 """
 ax.plot( home['Home_11_x'].iloc[:1500],home['Home_11_y'].iloc[:1500], 'r', MarkerSize=1 )
@@ -100,6 +100,12 @@ ax.plot( away['Away_15_x'].iloc[:1500],away['Away_15_y'].iloc[:1500], 'g', Marke
 """
 
 
-(fig, ax) = plot_frame(home.loc[51],away.loc[51], figax=(fig, ax))
+#(fig, ax) = plot_frame(home.loc[51],away.loc[51], figax=(fig, ax))
 
-plt.show()
+(fig, ax) = plot_events( events.loc[198:198], annotate=True, figax=(fig,ax) )
+
+frame = events.loc[198]['Start Frame']
+
+(fig, ax) = plot_frame( home.loc[frame], away.loc[frame], figax=(fig,ax) )
+
+#plt.show()
