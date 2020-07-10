@@ -19,11 +19,6 @@ away = teams[1]
 
 
 
-
-
-
-
-
 """ 
 #tracking
 
