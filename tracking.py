@@ -8,10 +8,6 @@ events, teams = mio.readMatchData(2, pitchSize)
 home = teams[0]
 away = teams[1]
 
-#home = mio.calcVelocities(teams[0][:200])
-#away = mio.calcVelocities(teams[1][:200])
-
-#events = events[:200]
 
 
 
@@ -28,6 +24,8 @@ away = teams[1]
 
 
 
+""" 
+#tracking
 
 home_events = events[events['Team'] == 'Home']
 away_events = events[events['Team'] == 'Away']
@@ -50,8 +48,6 @@ home_goals = home_shots[home_shots['Subtype'].str.contains('-GOAL')].copy()
 away_goals = away_shots[away_shots['Subtype'].str.contains('-GOAL')].copy()
 home_goals['Minute'] = home_goals['Start Time [s]'] / 60
 away_goals['Minute'] = home_goals['Start Time [s]'] / 60
-
-
 
 (figaxplt, pdimen) = pviz.createPitch(pitchSize[0], pitchSize[1])
 
@@ -79,5 +75,5 @@ frame = events.loc[198]['Start Frame']
 
 (fig, ax) = mviz.plot_frame( home.loc[frame], away.loc[frame], figax=(fig,ax) )
 
-
 plt.show()
+"""
