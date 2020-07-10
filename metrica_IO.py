@@ -66,3 +66,14 @@ def convert_to_pSize(data, pitchDimensions):
     data[y_columns] = data[y_columns] * pitchDimensions[1]
 
     return data
+
+
+def rmvTrackSpeeds(track_team):
+    columns = [c for c in track_team.columns if c.split('_')[-1] in ['vx','vy','ax','ay','speed','acceleration']]
+
+    return track_team.drop(columns=columns)
+
+
+def calcVelocities(track_team, smothing=True, filter_='Savitsky-Golay', window=7, polyorder=1, maxspeed=12):
+
+    return track_team
