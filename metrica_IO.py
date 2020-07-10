@@ -64,7 +64,7 @@ def convert_to_pSize(data, pitchDimensions):
     y_columns = [ c for c in data.columns if c[-1].lower() == 'y']
 
     data[x_columns] = data[x_columns] * pitchDimensions[0]
-    data[y_columns] = data[y_columns] * pitchDimensions[1]
+    data[y_columns] = data[y_columns] * pitchDimensions[1] * (-1)
 
     return data
 
