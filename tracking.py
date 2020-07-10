@@ -31,7 +31,6 @@ away = teams[1]
 
 
 
-"""
 home_events = events[events['Team'] == 'Home']
 away_events = events[events['Team'] == 'Away']
 home_events['Type'].value_counts()
@@ -57,10 +56,14 @@ away_goals['Minute'] = home_goals['Start Time [s]'] / 60
 
 
 (figaxplt, pdimen) = pviz.createPitch(pitchSize[0], pitchSize[1])
+
 (fig, ax, plt) = figaxplt
 fig.set_size_inches(15,10)
 
 ax.plot( events.loc[198]['Start X'], events.loc[198]['Start Y'], 'ro' )
+
+
+"""
 ax.annotate("", xy=events.loc[198][['End X','End Y']], xytext=events.loc[198][['Start X', 'Start Y']], alpha=0.6, arrowprops=dict(arrowstyle="->", color='r'))
 
 (fig, ax) = mviz.plot_events(events.loc[190:198], figax=(fig, ax), pitchSize=pdimen)
@@ -78,3 +81,5 @@ frame = events.loc[198]['Start Frame']
 
 (fig, ax) = mviz.plot_frame( home.loc[frame], away.loc[frame], figax=(fig,ax) )
 """
+
+plt.show()
