@@ -1,7 +1,5 @@
 import metrica_IO as mio
-from viz import pitch_viz as pviz
-import metrica_viz as mviz
-
+from viz import pitch_viz as pviz, metrica_viz as mviz
 
 # 106, 68
 pitchSize = (106, 68)
@@ -63,8 +61,8 @@ fig.set_size_inches(15,10)
 ax.plot( events.loc[198]['Start X'], events.loc[198]['Start Y'], 'ro' )
 
 
-"""
 ax.annotate("", xy=events.loc[198][['End X','End Y']], xytext=events.loc[198][['Start X', 'Start Y']], alpha=0.6, arrowprops=dict(arrowstyle="->", color='r'))
+
 
 (fig, ax) = mviz.plot_events(events.loc[190:198], figax=(fig, ax), pitchSize=pdimen)
 
@@ -80,6 +78,6 @@ ax.plot( away['Away_15_x'].iloc[:1500],away['Away_15_y'].iloc[:1500], 'g', Marke
 frame = events.loc[198]['Start Frame']
 
 (fig, ax) = mviz.plot_frame( home.loc[frame], away.loc[frame], figax=(fig,ax) )
-"""
+
 
 plt.show()
