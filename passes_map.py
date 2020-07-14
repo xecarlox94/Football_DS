@@ -24,7 +24,7 @@ passes = df.loc[df['type_id'] == 30]
 
 
 for passe in passes.iterrows():
-    if passe[1]['player_id'] == 20131:
+    if passe[1]['player_id'] == 5566:
         x = passe[1]['location'][0]
         y = passe[1]['location'][1]
         dx = passe[1]['pass_end_location'][0]
