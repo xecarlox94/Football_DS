@@ -18,7 +18,7 @@ away = teams[1]
 
 
 
-
+"""
 #tracking
 
 home_events = events[events['Team'] == 'Home']
@@ -48,17 +48,17 @@ away_goals['Minute'] = home_goals['Start Time [s]'] / 60
 (fig, ax, plt) = figaxplt
 fig.set_size_inches(15,10)
 
-#ax.plot( events.loc[198]['Start X'], events.loc[198]['Start Y'], 'ro' )
+ax.plot( events.loc[198]['Start X'], events.loc[198]['Start Y'], 'ro' )
 
 
-#ax.annotate("", xy=events.loc[198][['End X','End Y']], xytext=events.loc[198][['Start X', 'Start Y']], alpha=0.6, arrowprops=dict(arrowstyle="->", color='r'))
+ax.annotate("", xy=events.loc[198][['End X','End Y']], xytext=events.loc[198][['Start X', 'Start Y']], alpha=0.6, arrowprops=dict(arrowstyle="->", color='r'))
 
 
-#(fig, ax) = mviz.plot_events(events.loc[190:198], figax=(fig, ax), pitchSize=pdimen)
+(fig, ax) = mviz.plot_events(events.loc[190:198], figax=(fig, ax), pitchSize=pdimen)
 
-#ax.plot( home['Home_11_x'].iloc[:1500],home['Home_11_y'].iloc[:1500], 'r', MarkerSize=1 )
-#ax.plot( home['Home_1_x'].iloc[:1500],home['Home_1_y'].iloc[:1500], 'b', MarkerSize=1 )
-#ax.plot( away['Away_15_x'].iloc[:1500],away['Away_15_y'].iloc[:1500], 'g', MarkerSize=1 )
+ax.plot( home['Home_11_x'].iloc[:1500],home['Home_11_y'].iloc[:1500], 'r', MarkerSize=1 )
+ax.plot( home['Home_1_x'].iloc[:1500],home['Home_1_y'].iloc[:1500], 'b', MarkerSize=1 )
+ax.plot( away['Away_15_x'].iloc[:1500],away['Away_15_y'].iloc[:1500], 'g', MarkerSize=1 )
 
 
 #(fig, ax) = mviz.plot_frame(home.loc[51],away.loc[51], figax=(fig, ax))
@@ -70,4 +70,5 @@ frame = events.loc[198]['Start Frame']
 (fig, ax) = mviz.plot_frame( home.loc[frame], away.loc[frame], figax=(fig,ax) )
 
 
-plt.show()
+#plt.show()
+"""
