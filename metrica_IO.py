@@ -2,7 +2,6 @@ import pandas as pd
 import csv as csv
 import scipy.signal as signal
 import numpy as np
-import math
 
 DATA_DIR = "data/metrica_sports/data"
 

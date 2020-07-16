@@ -11,10 +11,11 @@ away = teams[1]
 
 
 
+(figaxplt, pdimen) = pviz.createPitch(pitchSize[0], pitchSize[1])
 
+(fig, ax, plt) = figaxplt
 
-
-
+plt.show()
 
 
 
