@@ -71,7 +71,7 @@ def save_match_clip(home, away, fpath, fname="clip_test", figax=None, frames_per
         fig, ax = figax
 
     fig.set_tight_layout(True)
-
+    
     print("Generating movie...", end='')
 
     with writer.saving(fig, fname, 100):
@@ -86,10 +86,11 @@ def save_match_clip(home, away, fpath, fname="clip_test", figax=None, frames_per
                 figobjs.append(objs)
                 
                 if include_player_velocities:
-                    vx_columns = ['{}_vx'.format(c[-2:]) for c in x_columns]
-                    vy_columns = ['{}_vy'.format(c[-2:]) for c in y_columns]
-
+                    vx_columns = [c for c in team.keys() if c[-3:] == '_vx' and c != 'ball_x']
+                    vy_columns = [c for c in team.keys() if c[-3:] == '_vy' and c != 'ball_x']
+                    
                     objs = ax.quiver(team[x_columns], team[y_columns], team[vx_columns], team[vy_columns], color=color, scale_units='inches', scale=10, width=0.0015, headlength=5, headwidth=3, alpha=PlayerAlpha)
+                    
                     figobjs.append(objs)
 
             objs, = ax.plot(team['ball_x'], team['ball_y'], 'ko', MarkerSize=6, alpha=1.0, LineWidth=0)

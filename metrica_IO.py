@@ -17,6 +17,9 @@ def readMatchData(game_id, pitchDimensions):
     events = convert_to_pSize(events, pitchDimensions)
     
     home, away, events = to_single_playing_direction(track_home, track_away,events)
+    
+    home = calcVel(home, smothing=True)
+    away = calcVel(away, smothing=True)
 
     return events, (home, away)
 
@@ -92,11 +95,14 @@ def calcVel(track_team, smothing=True, filter_='Savitsky-Golay', window=7, polyo
 
         if smothing:
             if filter_ == 'Savitsky-Golay':
-                vx.loc[:second_half_id] = signal.savgol_filter(vx.loc[:second_half_id], window_length=window, polyorder=polyorder)
-                vy.loc[:second_half_id] = signal.savgol_filter(vy.loc[:second_half_id], window_length=window, polyorder=polyorder)
+                vx.dropna(inplace=True)
+                vy.dropna(inplace=True)
+                
+                vx.loc[:second_half_id] = signal.savgol_filter(vx.loc[:second_half_id], window_length=window, polyorder=polyorder, mode='mirror')
+                vy.loc[:second_half_id] = signal.savgol_filter(vy.loc[:second_half_id], window_length=window, polyorder=polyorder, mode='mirror')
 
-                vx.loc[second_half_id:] = signal.savgol_filter(vx.loc[second_half_id:], window_length=window, polyorder=polyorder)
-                vy.loc[second_half_id:] = signal.savgol_filter(vy.loc[second_half_id:], window_length=window, polyorder=polyorder)
+                vx.loc[second_half_id:] = signal.savgol_filter(vx.loc[second_half_id:], window_length=window, polyorder=polyorder, mode='mirror')
+                vy.loc[second_half_id:] = signal.savgol_filter(vy.loc[second_half_id:], window_length=window, polyorder=polyorder, mode='mirror')
 
             elif filter_ == 'moving_average':
                 ma_window = np.ones(window) / window

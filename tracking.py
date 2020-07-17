@@ -1,12 +1,18 @@
 import metrica_IO as mio
 from viz import pitch_viz as pviz, metrica_viz as mviz
 
+DATA_DIR = '/Users/jf94u/Desktop/Projects/football_dataScience/data'
 # 106, 68
 pitchSize = (106, 68)
 events, teams = mio.readMatchData(2, pitchSize)
 
 home = teams[0]
 away = teams[1]
+
+
+
+mviz.save_match_clip(home[73600:73600+300],away[73600:73600+300], DATA_DIR, include_player_velocities=True, fname="goal")
+
 
 
 
