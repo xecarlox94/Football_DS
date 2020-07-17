@@ -11,14 +11,6 @@ away = teams[1]
 
 
 
-(figaxplt, pdimen) = pviz.createPitch(pitchSize[0], pitchSize[1])
-
-(fig, ax, plt) = figaxplt
-
-plt.show()
-
-
-
 """
 #tracking
 
@@ -62,7 +54,7 @@ ax.plot( home['Home_1_x'].iloc[:1500],home['Home_1_y'].iloc[:1500], 'b', MarkerS
 ax.plot( away['Away_15_x'].iloc[:1500],away['Away_15_y'].iloc[:1500], 'g', MarkerSize=1 )
 
 
-#(fig, ax) = mviz.plot_frame(home.loc[51],away.loc[51], figax=(fig, ax))
+(fig, ax) = mviz.plot_frame(home.loc[51],away.loc[51], figax=(fig, ax))
 
 (fig, ax) = mviz.plot_events( events.loc[198:198], annotate=True, figax=(fig,ax) )
 
@@ -71,5 +63,5 @@ frame = events.loc[198]['Start Frame']
 (fig, ax) = mviz.plot_frame( home.loc[frame], away.loc[frame], figax=(fig,ax) )
 
 
-#plt.show()
+
 """

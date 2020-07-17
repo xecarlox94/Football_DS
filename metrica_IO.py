@@ -15,8 +15,10 @@ def readMatchData(game_id, pitchDimensions):
 
     events = eventData(game_id)
     events = convert_to_pSize(events, pitchDimensions)
+    
+    home, away, events = to_single_playing_direction(track_home, track_away,events)
 
-    return events, (track_home, track_away)
+    return events, (home, away)
 
 
 def eventData(game_id):
@@ -62,8 +64,8 @@ def convert_to_pSize(data, pitchDimensions):
     x_columns = [c for c in data.columns if c[-1].lower() == 'x']
     y_columns = [c for c in data.columns if c[-1].lower() == 'y']
 
-    data[x_columns] = data[x_columns] * pitchDimensions[0]
-    data[y_columns] = data[y_columns] * pitchDimensions[1]
+    data[x_columns] = (data[x_columns] - 0.5) * pitchDimensions[0]
+    data[y_columns] = (-1) * (data[y_columns] - 0.5) * pitchDimensions[1]
 
     return data
 
@@ -113,6 +115,13 @@ def calcVel(track_team, smothing=True, filter_='Savitsky-Golay', window=7, polyo
 
     return track_team
 
+def to_single_playing_direction(home, away, events):
+    for data in [home, away, events]:
+        second_half_idx = data.Period.idxmax(2)
+        columns = [c for c in data if c[-1].lower() in ['x', 'y']]
+        data.loc[second_half_idx:,columns] *= -1
+
+    return home, away, events
 
 def rmvTrackSpeeds(track_team):
     columns = [c for c in track_team.columns if c.split('_')[-1] in ['vx', 'vy', 'ax', 'ay', 'speed', 'acceleration']]
