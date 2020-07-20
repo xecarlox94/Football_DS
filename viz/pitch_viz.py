@@ -14,7 +14,7 @@ def createPitch( width=130, height=90, spotSize = 0.3, lineColor = "black"):
     halfHeight = height/2
     penDistance = 11
     penArcSz = 18.3
-    centerCircleSz = 13
+    centerCircleSz = 9
     
     boxSize = (40, 16.5)
     smBoxSize = (18, 5.5)
