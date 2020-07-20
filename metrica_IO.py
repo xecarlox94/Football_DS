@@ -18,8 +18,8 @@ def readMatchData(game_id, pitchDimensions):
     
     home, away, events = to_single_playing_direction(track_home, track_away,events)
     
-    home = calcVel(home, smothing=True)
-    away = calcVel(away, smothing=True)
+    home = calcVel(home, smothing=True, filter_='moving_average')
+    away = calcVel(away, smothing=True, filter_='moving_average')
 
     return events, (home, away)
 

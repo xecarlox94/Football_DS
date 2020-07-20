@@ -10,12 +10,19 @@ home = teams[0]
 away = teams[1]
 
 
-
-mviz.save_match_clip(home[73600:73600+300],away[73600:73600+300], DATA_DIR, include_player_velocities=True, fname="goal")
-
+mviz.save_match_clip(home[20000:20000+2000],away[20000:20000+2000], DATA_DIR, include_player_velocities=True, fname="play2", PlayerMarkerSize=5)
 
 
 
+#(figaxplt, pdimen) = pviz.createPitch(pitchSize[0], pitchSize[1])
+#(fig, ax, plt) = figaxplt
+
+#fig.set_size_inches(15,10)
+
+
+#(fig, ax) = mviz.plot_frame(home.loc[10000],away.loc[10000], figax=(fig, ax), annotate=True, inc_plr_vel=True)
+
+#plt.show()
 
 """
 #tracking

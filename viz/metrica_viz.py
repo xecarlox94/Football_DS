@@ -2,8 +2,7 @@ from viz import pitch_viz as pviz
 import numpy as np
 import matplotlib.animation as animation
 
-def plot_events(events, figax=None, pitchSize=(106, 68), indicators=['Marker', 'Arrow'], color='r', marker_style='o',
-                alpha=0.5, annotate=False):
+def plot_events(events, figax=None, pitchSize=(106, 68), indicators=['Marker', 'Arrow'], color='r', marker_style='o', alpha=0.5, annotate=False):
     if figax is None:
         (figaxplt, pdimen) = pviz.createPitch(pitchSize[0], pitchSize[1])
         (fig, ax, plt) = figaxplt
@@ -25,8 +24,7 @@ def plot_events(events, figax=None, pitchSize=(106, 68), indicators=['Marker', '
     return fig, ax
 
 
-def plot_frame(homeTeam, awayTeam, figax=None, teamColors=('r', 'b'), pitchSize=(106, 68), inc_plr_vel=False,
-               PlayerMarkerSize=10, PlayerAlpha=0.7, annotate=False):
+def plot_frame(homeTeam, awayTeam, figax=None, teamColors=('r', 'b'), pitchSize=(106, 68), inc_plr_vel=False, PlayerMarkerSize=10, PlayerAlpha=0.7, annotate=False):
     if figax is None:
         (figaxplt, pdimen) = pviz.createPitch(pitchSize[0], pitchSize[1])
         (fig, ax, plt) = figaxplt
@@ -43,9 +41,8 @@ def plot_frame(homeTeam, awayTeam, figax=None, teamColors=('r', 'b'), pitchSize=
             ax.quiver(team[x_columns], team[y_columns], team[vx_columns], team[vy_columns], color=color,
                       scale_units='inches', scale=10, width=0.0015, headlength=5, headwidth=3, alpha=PlayerAlpha)
         if annotate:
-            [ax.text(team[x] + 0.5, team[y] + 0.5, x.split('_'), fontsize=10, color=color) for x, y in
-             zip(x_columns, y_columns) if not (np.isnan(team[x]) or np.isnan(team[y]))]
-
+            [ax.text(team[x] + 0.5, team[y] + 0.5, x.split('_')[1], fontsize=10, color=color) for x, y in zip(x_columns, y_columns) if not (np.isnan(team[x]) or np.isnan(team[y]))]
+            
     ax.plot(homeTeam['ball_x'], homeTeam['ball_y'], 'ko', MarkerSize=6, LineWidth=0)
 
     return fig, ax
@@ -72,7 +69,8 @@ def save_match_clip(home, away, fpath, fname="clip_test", figax=None, frames_per
 
     fig.set_tight_layout(True)
     
-    print("Generating movie...", end='')
+    print("Generating video...", end='')
+    
 
     with writer.saving(fig, fname, 100):
         for i in index:
@@ -86,10 +84,11 @@ def save_match_clip(home, away, fpath, fname="clip_test", figax=None, frames_per
                 figobjs.append(objs)
                 
                 if include_player_velocities:
-                    vx_columns = [c for c in team.keys() if c[-3:] == '_vx' and c != 'ball_x']
-                    vy_columns = [c for c in team.keys() if c[-3:] == '_vy' and c != 'ball_x']
+                    vx_columns = [ '{}_vx'.format(c[:-2]) for c in x_columns]
+                    vy_columns = [ '{}_vy'.format(c[:-2]) for c in y_columns]
                     
                     objs = ax.quiver(team[x_columns], team[y_columns], team[vx_columns], team[vy_columns], color=color, scale_units='inches', scale=10, width=0.0015, headlength=5, headwidth=3, alpha=PlayerAlpha)
+                    
                     
                     figobjs.append(objs)
 
@@ -98,7 +97,7 @@ def save_match_clip(home, away, fpath, fname="clip_test", figax=None, frames_per
 
             frame_minute = int(team['Time [s]'] / 60)
             frame_second = ( team['Time [s]'] / 60. - frame_minute) * 60.
-            timestring = "%d:%1.2f" % (frame_minute, frame_second)
+            timestring = "%d:%1.2f    frame: %d" % (frame_minute, frame_second, i)
             objs = ax.text(-2.5, field_dimen[1]/2.+1, timestring, fontsize=14)
             figobjs.append(objs)
             
@@ -106,7 +105,8 @@ def save_match_clip(home, away, fpath, fname="clip_test", figax=None, frames_per
             
             for figobj in figobjs:
                 figobj.remove()
-    
+                
     print("done")
     plt.clf()
     plt.close(fig)
+    
