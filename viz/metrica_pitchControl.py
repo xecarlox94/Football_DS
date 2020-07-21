@@ -28,6 +28,19 @@ class Player(object):
             self.velocity = np.array([0., 0.])
 
 
+
+def initialise_players(team, teamname, params, GKid):
+    player_ids = np.unique( [c.split('_')[1] for c in team.keys() if c[:4] == teamname ] )
+
+    team_players = []
+    for player in player_ids:
+        p = Player(player, team, teamname, params, GKid)
+        if p.inframe:
+            team_players.append(p)
+
+    return team_players
+
+
 def default_model_params(time_to_control_veto=3):
     params = {}
     params['max_player_accel'] = 7.
