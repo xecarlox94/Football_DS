@@ -133,3 +133,17 @@ def rmvTrackSpeeds(track_team):
     columns = [c for c in track_team.columns if c.split('_')[-1] in ['vx', 'vy', 'ax', 'ay', 'speed', 'acceleration']]
 
     return track_team.drop(columns=columns)
+
+
+def findGoalkeeper(track_team):
+    x_columns = [c for c in track_team.columns if c[-2:].lower() == '_x' and c[:4] in ['Home', 'Away']]
+
+    GK_col = track_team.iloc[0][x_columns].abs().idxmax(axis=1)
+
+    return GK_col.split('_')[1]
+
+
+def find_playing_position(track_team, teamname):
+    GK_col = teamname + findGoalkeeper(track_team) + '_x'
+
+    return -np.sign(track_team.iloc[0][GK_col])

@@ -13,6 +13,20 @@ home = teams[0]
 away = teams[1]
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+"""
+#lecture 2
 home_players = np.unique( [ c.split('_')[1] for c in home.columns if c[:4].lower() == 'home' ] )
 home_summary = pd.DataFrame(index=home_players)
 
@@ -94,6 +108,7 @@ p_sprints_end = np.where(p_sprints == -1)[0] + int(sprint_window/2)
 for s,e in zip(p_sprints_start, p_sprints_end):
     ax.plot(home[column_x].iloc[s], home[column_y].iloc[s], 'ro')
     ax.plot(home[column_x].iloc[s:e+1], home[column_y].iloc[s:e+1], 'r')
+"""
 
 
 """
@@ -115,9 +130,6 @@ plt.show()
 
 
 """
-
-
-
 
 
 
