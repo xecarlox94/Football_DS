@@ -27,6 +27,17 @@ class Player(object):
         if np.any( np.isnan(self.velocity) ):
             self.velocity = np.array([0., 0.])
 
+    def simple_time_to_intercept(self, r_final):
+        self.PPCF = 0
+
+        r_reaction = self.position + self.velocity * self.reaction_time
+
+        self.time_to_intercept = self.reaction_time + np.linalg.norm(r_final - r_reaction) / self.vmax
+        return self.time_to_intercept
+
+    def probability_intercept_the_ball(self, T):
+        return 1 / (1. + np.exp( -np.pi / np.sqrt(3.0) / self.tti_sigma * ( T - self.time_to_intercept) ) )
+
 
 
 def initialise_players(team, teamname, params, GKid):
@@ -60,3 +71,29 @@ def default_model_params(time_to_control_veto=3):
     params['time_to_control_att'] = time_to_control_veto * np.log(10) * ( np.sqrt(3) * params['tti_sigma'] / np.pi + 1 / params['lambda_def'] )
 
     return params
+
+
+def check_offsides( attacking_players, defending_players, ball_position, GK_numbers, verbose=False, tol=0.2):
+    defending_GK_id = GK_numbers[1] if attacking_players[0].teamname == "Home" else GK_numbers[0]
+
+    assert defending_GK_id in [ p.id for p in defending_players ]
+
+    defending_GK = [p for p in defending_players if p.id == defending_GK_id][0]
+    
+    defending_half = np.sign(defending_GK.position[0])
+    
+    deepest_defender_x = sorted( [p.position[0]*defending_half for p in defending_players if not p.id == defending_GK.id], reverse=True)
+
+    tol *= defending_half
+    ball_pos = ball_position * defending_half
+
+    offside_line = max(deepest_defender_x, ball_pos, 0.0) + tol
+
+    if verbose:
+        for p in attacking_players:
+            if p.position[0] * defending_half > offside_line:
+                print( "player %s in %s team is offside" % (p.id, p.playername) )
+
+    attacking_players = [p for p in attacking_players if p.position[0] * defending_half <= offside_line]
+
+    return attacking_players
