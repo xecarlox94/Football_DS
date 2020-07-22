@@ -97,3 +97,42 @@ def check_offsides( attacking_players, defending_players, ball_position, GK_numb
     attacking_players = [p for p in attacking_players if p.position[0] * defending_half <= offside_line]
 
     return attacking_players
+
+
+def calculate_pitch_control_at_target(target_position, attacking_players, defending_players, ball_start_position, params):
+    pass
+
+def generate_pitch_control_for_event(event_id, events, track_home, track_away, params, GK_numbers, field_dimen=(106., 68.0), n_grid_cells_x = 50, offsides=True):
+    pass_frame = events.loc[event_id]['Start Frame']
+    pass_team = events.loc[event_id].Team
+    ball_start_pos = np.array([events.loc[event_id]['Start X'], events.loc[event_id]['Start Y']])
+
+    if pass_team.lower() == 'home':
+        attacking_players = initialise_players(track_home.loc[pass_frame], 'Home', params, GK_numbers[0])
+        defending_players = initialise_players(track_away.loc[pass_frame], 'Away', params, GK_numbers[1])
+    elif pass_team.lower() == 'away':
+        defending_players = initialise_players(track_away.loc[pass_frame], 'Away', params, GK_numbers[1])
+        attacking_players = initialise_players(track_home.loc[pass_frame], 'Home', params, GK_numbers[0])
+    else:
+        assert False, "Teams need to be either home or away"
+
+    if offsides:
+        attacking_players = check_offsides(attacking_players, defending_players, ball_start_pos, GK_numbers)
+
+    n_grid_cells_y = int(n_grid_cells_x * field_dimen[1] / field_dimen[0] )
+    dx = field_dimen[0] / n_grid_cells_x
+    dy = field_dimen[1] / n_grid_cells_y
+    xgrid = np.arange(n_grid_cells_x) * dx - field_dimen[0] / 2 + dx / 2
+    ygrid = np.arange(n_grid_cells_y) * dy - field_dimen[1] / 2 + dy / 2
+
+    for i in range( len(ygrid) ):
+        for j in range( len(xgrid) ):
+            target_pos = np.array( [xgrid[j], ygrid[i]] )
+            PPCFa[i,j], PPCFd[i,j] = calculate_pitch_control_at_target(target_pos, attacking_players, defending_players, ball_start_pos, params)
+            
+    checksum = np.sum(PPCFa + PPCFd) / float(n_grid_cells_x * n_grid_cells_y)
+
+    assert 1 - checksum < params['model_converge_tol'], "Checksum failed: %1.3f" % (1 - checksum)
+
+    return PPCFa, xgrid, ygrid
+
