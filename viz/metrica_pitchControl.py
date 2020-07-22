@@ -68,7 +68,7 @@ def default_model_params(time_to_control_veto=3):
     params['model_converge_tol'] = 0.01
 
     params['time_to_control_att'] = time_to_control_veto * np.log(10) * ( np.sqrt(3) * params['tti_sigma'] / np.pi + 1 / params['lambda_att'] )
-    params['time_to_control_att'] = time_to_control_veto * np.log(10) * ( np.sqrt(3) * params['tti_sigma'] / np.pi + 1 / params['lambda_def'] )
+    params['time_to_control_def'] = time_to_control_veto * np.log(10) * ( np.sqrt(3) * params['tti_sigma'] / np.pi + 1 / params['lambda_def'] )
 
     return params
 
@@ -99,8 +99,29 @@ def check_offsides( attacking_players, defending_players, ball_position, GK_numb
     return attacking_players
 
 
-def calculate_pitch_control_at_target(target_position, attacking_players, defending_players, ball_start_position, params):
-    pass
+def calculate_pitch_control_at_target(target_pos, attacking_players, defending_players, ball_start_pos, params):
+    if ball_start_pos is None or any(np.isnan(ball_start_pos)):
+        ball_travel_time = 0.0
+    else:
+        ball_travel_time = np.linalg.norm(target_pos - ball_start_pos) / params['average_ball_speed']
+
+    ta_min_att = np.nanmin( [p.simple_time_to_intercept(target_pos) for p in attacking_players ] )
+    ta_min_def = np.nanmin( [p.simple_time_to_intercept(target_pos) for p in defending_players ] )
+
+    if ta_min_att - max(ball_travel_time, ta_min_def) >= params['time_to_control_att']:
+        return 0. / 1.
+    elif ta_min_def - max(ball_travel_time, ta_min_def) >= params['time_to_control_def']:
+        return 1. / 0.
+    else:
+        attacking_players = [p for p in attacking_players if p.time_to_intercept - ta_min_att < params['time_to_control_att']]
+        defending_players = [p for p in defending_players if p.time_to_intercept - ta_min_def < params['time_to_control_def']]
+
+        dT = np.arange(ball_travel_time - params['int_dt'], ball_travel_time + params['max_int_time'], params['int_dt'])
+        PPCFatt = np.zeros_like(dT)
+        PPCFdef = np.zeros_like(dT)
+
+        while 1 -
+
 
 def generate_pitch_control_for_event(event_id, events, track_home, track_away, params, GK_numbers, field_dimen=(106., 68.0), n_grid_cells_x = 50, offsides=True):
     pass_frame = events.loc[event_id]['Start Frame']
@@ -138,6 +159,3 @@ def generate_pitch_control_for_event(event_id, events, track_home, track_away, p
     assert 1 - checksum < params['model_converge_tol'], "Checksum failed: %1.3f" % (1 - checksum)
 
     return PPCFa, xgrid, ygrid
-
-
-
