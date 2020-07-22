@@ -125,6 +125,9 @@ def generate_pitch_control_for_event(event_id, events, track_home, track_away, p
     xgrid = np.arange(n_grid_cells_x) * dx - field_dimen[0] / 2 + dx / 2
     ygrid = np.arange(n_grid_cells_y) * dy - field_dimen[1] / 2 + dy / 2
 
+    PPCFa = np.zeros( shape=( len(ygrid), len(xgrid) ) )
+    PPCFd = np.zeros( shape=( len(ygrid), len(xgrid) ) )
+
     for i in range( len(ygrid) ):
         for j in range( len(xgrid) ):
             target_pos = np.array( [xgrid[j], ygrid[i]] )
@@ -135,4 +138,6 @@ def generate_pitch_control_for_event(event_id, events, track_home, track_away, p
     assert 1 - checksum < params['model_converge_tol'], "Checksum failed: %1.3f" % (1 - checksum)
 
     return PPCFa, xgrid, ygrid
+
+
 
