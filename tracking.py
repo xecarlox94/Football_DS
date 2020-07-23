@@ -7,10 +7,7 @@ import pandas as pd
 DATA_DIR = '/Users/jf94u/Desktop/Projects/football_dataScience/data'
 # 106, 68
 pitchSize = (106, 68)
-events, teams = mio.readMatchData(2, pitchSize)
-
-home = teams[0]
-away = teams[1]
+events, (home, away) = mio.readMatchData(2, pitchSize)
 
 
 
@@ -26,7 +23,7 @@ params = mpc.default_model_params()
 
 GK_numbers = [mio.findGoalkeeper(home), mio.findGoalkeeper(away)]
 
-
+"""
 PPFC, xgrid, ygrid = mpc.generate_pitch_control_for_event(820, events, home, away, params, GK_numbers)
 mviz.plot_event_pitch_control(820, events, home, away, PPFC)
 
@@ -35,7 +32,23 @@ mviz.plot_event_pitch_control(821, events, home, away, PPFC)
 
 PPFC, xgrid, ygrid = mpc.generate_pitch_control_for_event(822, events, home, away, params, GK_numbers)
 mviz.plot_event_pitch_control(822, events, home, away, PPFC)
+"""
 
+home_passes = events[ (events['Type'].isin(['PASS'])) & (events['Team'] == 'Home') ]
+
+pass_probability = []
+
+for i, row in home_passes.iterrows():
+
+    pass_start_pos = np.array([row['Start X'], row['Start Y']])
+    pass_target_pos= np.array([row['End X'], row['End Y']])
+    pass_frame = row['Start Frame']
+
+    att_plrs = mpc.initialise_players(home.loc[pass_frame], 'Home', params, GK_numbers[0])
+    def_plrs = mpc.initialise_players(away.loc[pass_frame], 'Away', params, GK_numbers[1])
+    Patt,Pdef = mpc.calculate_pitch_control_at_target(pass_target_pos, att_plrs, def_plrs, pass_start_pos, params)
+    
+    pass_probability.append( (i, Patt) )
 
 
 """
