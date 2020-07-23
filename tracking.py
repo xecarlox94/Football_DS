@@ -30,6 +30,12 @@ GK_numbers = [mio.findGoalkeeper(home), mio.findGoalkeeper(away)]
 PPFC, xgrid, ygrid = mpc.generate_pitch_control_for_event(820, events, home, away, params, GK_numbers)
 mviz.plot_event_pitch_control(820, events, home, away, PPFC)
 
+PPFC, xgrid, ygrid = mpc.generate_pitch_control_for_event(821, events, home, away, params, GK_numbers)
+mviz.plot_event_pitch_control(821, events, home, away, PPFC)
+
+PPFC, xgrid, ygrid = mpc.generate_pitch_control_for_event(822, events, home, away, params, GK_numbers)
+mviz.plot_event_pitch_control(822, events, home, away, PPFC)
+
 
 
 """

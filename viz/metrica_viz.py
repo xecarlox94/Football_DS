@@ -24,7 +24,7 @@ def plot_events(events, figax=None, pitchSize=(106, 68), indicators=['Marker', '
     return fig, ax
 
 
-def plot_frame(homeTeam, awayTeam, figax=None, teamColors=('r', 'b'), pitchSize=(106, 68), inc_plr_vel=False, PlayerMarkerSize=10, PlayerAlpha=0.7, annotate=False):
+def plot_frame(homeTeam, awayTeam, figax=None, teamColors=('r', 'b'), pitchSize=(106, 68), include_player_velocities=False, PlayerMarkerSize=10, PlayerAlpha=0.7, annotate=False):
     if figax is None:
         (figaxplt, pdimen) = pviz.createPitch(pitchSize[0], pitchSize[1])
         (fig, ax, plt) = figaxplt
@@ -35,7 +35,7 @@ def plot_frame(homeTeam, awayTeam, figax=None, teamColors=('r', 'b'), pitchSize=
         x_columns = [c for c in team.keys() if c[-2:].lower() == '_x' and c != 'ball_x']
         y_columns = [c for c in team.keys() if c[-2:].lower() == '_y' and c != 'ball_y']
         ax.plot(team[x_columns], team[y_columns], color + 'o', MarkerSize=PlayerMarkerSize, alpha=PlayerAlpha)
-        if inc_plr_vel:
+        if include_player_velocities:
             vx_columns = ['{}_vx'.format(c[:-2]) for c in x_columns]
             vy_columns = ['{}_vy'.format(c[:-2]) for c in y_columns]
             ax.quiver(team[x_columns], team[y_columns], team[vx_columns], team[vy_columns], color=color,
@@ -121,9 +121,9 @@ def plot_event_pitch_control(eventid, events, track_home, track_away, PPFC, alph
     plot_events(events.loc[eventid:eventid], figax=(fig,ax), pitchSize=field_dimen, annotate=False, color='k', alpha=1, indicators = ['Marker','Arrow'])
 
     if pass_team == 'Home':
-        cmap = 'bwr'
-    else:
         cmap = 'bwr_r'
+    else:
+        cmap = 'bwr'
         
     ax.imshow(np.flipud(PPFC), extent=(-field_dimen[0]/2., field_dimen[0]/2., -field_dimen[1]/2., field_dimen[1]/2.),interpolation='spline36', vmin=0, vmax=1.0, cmap=cmap, alpha=0.5)
 

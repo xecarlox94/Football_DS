@@ -57,7 +57,7 @@ class Player(object):
         self.time_to_intercept = self.reaction_time + np.linalg.norm(r_final - r_reaction) / self.vmax
         return self.time_to_intercept
 
-    def probability_intercept_the_ball(self, T):
+    def probability_intercept_ball(self, T):
         return 1 / (1. + np.exp( -np.pi / np.sqrt(3.0) / self.tti_sigma * ( T - self.time_to_intercept) ) )
 
 
@@ -124,23 +124,29 @@ def calculate_pitch_control_at_target(target_pos, attacking_players, defending_p
         ptot = 0.0
         i = 1
 
-        while 1 - ptot > params['model_converge_tol'] and i < dT_array.size:
+        while 1-ptot>params['model_converge_tol'] and i<dT_array.size:
             T = dT_array[i]
-
+            
             for player in attacking_players:
-                dPPCFdt = (1 - PPCFatt[i-1] - PPCFdef[i-1]) * player.probability_intercept_the_ball(T) * player.lambda_att
-                assert dPPCFdt >= 0, "Invalid attacking player probability (calculate_pitch_control_at_target)"
-
-                player.PPCF += dPPCFdt * params['int_dt']
-                PPCFatt[i] += player.PPCF
-
+                # calculate ball control probablity for 'player' in time interval T+dt
+                dPPCFdT = (1-PPCFatt[i-1]-PPCFdef[i-1])*player.probability_intercept_ball( T ) * player.lambda_att
+                
+                # make sure it's greater than zero
+                assert dPPCFdT>=0, 'Invalid attacking player probability (calculate_pitch_control_at_target)'
+                player.PPCF += dPPCFdT*params['int_dt'] # total contribution from individual player
+                PPCFatt[i] += player.PPCF # add to sum over players in the attacking team (remembering array element is zero at the start of each integration iteration)
+                
             for player in defending_players:
-                dPPCFdt = (1 - PPCFatt[i-1] - PPCFdef[i-1]) * player.probability_intercept_the_ball(T) * player.lambda_def
-                assert dPPCFdt >= 0, "Invalid attacking player probability (calculate_pitch_control_at_target)"
-
-                player.PPCF += dPPCFdt * params['int_dt']
-                PPCFdef[i] += player.PPCF
-
+                # calculate ball control probablity for 'player' in time interval T+dt
+                dPPCFdT = (1-PPCFatt[i-1]-PPCFdef[i-1])*player.probability_intercept_ball( T ) * player.lambda_def
+                
+                # make sure it's greater than zero
+                assert dPPCFdT>=0, 'Invalid defending player probability (calculate_pitch_control_at_target)'
+                
+                player.PPCF += dPPCFdT*params['int_dt'] # total contribution from individual player
+                PPCFdef[i] += player.PPCF # add to sum over players in the defending team
+                
+            ptot = PPCFdef[i]+PPCFatt[i] # total pitch control probability
             i += 1
 
         if i >= dT_array.size:
