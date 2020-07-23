@@ -116,11 +116,36 @@ def calculate_pitch_control_at_target(target_pos, attacking_players, defending_p
         attacking_players = [p for p in attacking_players if p.time_to_intercept - ta_min_att < params['time_to_control_att']]
         defending_players = [p for p in defending_players if p.time_to_intercept - ta_min_def < params['time_to_control_def']]
 
-        dT = np.arange(ball_travel_time - params['int_dt'], ball_travel_time + params['max_int_time'], params['int_dt'])
-        PPCFatt = np.zeros_like(dT)
-        PPCFdef = np.zeros_like(dT)
+        dT_array = np.arange(ball_travel_time - params['int_dt'], ball_travel_time + params['max_int_time'], params['int_dt'])
+        PPCFatt = np.zeros_like(dT_array)
+        PPCFdef = np.zeros_like(dT_array)
 
-        while 1 -
+        ptot = 0.0
+        i = 1
+
+        while 1 - ptot > params['model_converge_tol'] and i < dT_array.size:
+            T = dT_array[i]
+
+            for player in attacking_players:
+                dPPCFdt = (1 - PPCFatt[i-1] - PPCFdef[i-1]) * player.probability_intercept_the_ball(T) * player.lambda_att
+                assert dPPCFdt >= 0, "Invalid attacking player probability (calculate_pitch_control_at_target)"
+
+                player.PPCF += dPPCFdt * params['int_dt']
+                PPCFatt[i] += player.PPCF
+
+            for player in defending_players:
+                dPPCFdt = (1 - PPCFatt[i-1] - PPCFdef[i-1]) * player.probability_intercept_the_ball(T) * player.lambda_def
+                assert dPPCFdt >= 0, "Invalid attacking player probability (calculate_pitch_control_at_target)"
+
+                player.PPCF += dPPCFdt * params['int_dt']
+                PPCFdef[i] += player.PPCF
+
+            i += 1
+
+        if i >= dT_array.size:
+            print("Integration failed to converge: %1.3f" % (ptot))
+
+        return PPCFatt[i - 1], PPCFdef[i - 1]
 
 
 def generate_pitch_control_for_event(event_id, events, track_home, track_away, params, GK_numbers, field_dimen=(106., 68.0), n_grid_cells_x = 50, offsides=True):
