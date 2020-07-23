@@ -109,4 +109,22 @@ def save_match_clip(home, away, fpath, fname="clip_test", figax=None, frames_per
     print("done")
     plt.clf()
     plt.close(fig)
-    
+
+
+def plot_event_pitch_control(eventid, events, track_home, track_away, PPFC, alpha=0.7, include_player_velocities=True, annotate=False, field_dimen=(106.0,68)):
+    pass_frame = events.loc[eventid]['Start Frame']
+    pass_team = events.loc[eventid].Team
+
+    ((fig,ax,_), _) = pviz.createPitch(field_dimen[0], field_dimen[1])
+
+    plot_frame(track_home.loc[pass_frame], track_away.loc[pass_frame], figax=(fig, ax), PlayerAlpha=alpha, include_player_velocities=include_player_velocities, annotate=annotate)
+    plot_events(events.loc[eventid:eventid], figax=(fig,ax), pitchSize=field_dimen, annotate=False, color='k', alpha=1, indicators = ['Marker','Arrow'])
+
+    if pass_team == 'Home':
+        cmap = 'bwr'
+    else:
+        cmap = 'bwr_r'
+        
+    ax.imshow(np.flipud(PPFC), extent=(-field_dimen[0]/2., field_dimen[0]/2., -field_dimen[1]/2., field_dimen[1]/2.),interpolation='spline36', vmin=0, vmax=1.0, cmap=cmap, alpha=0.5)
+
+    return fig, ax
