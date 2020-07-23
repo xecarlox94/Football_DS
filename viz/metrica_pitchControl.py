@@ -2,8 +2,30 @@ import numpy as np
 
 
 
+def default_model_params(time_to_control_veto=3):
+    params = {}
+    params['max_player_accel'] = 7.
+    params['max_player_speed'] = 5.
+    params['average_ball_speed'] = 15.
+    params['reaction_time'] = 0.7
+    params['tti_sigma'] = 0.45
+    params['kappa_def'] = 1.
+    params['lambda_att'] = 4.3
+    params['lambda_def'] = 4.3 * params['kappa_def']
+    params['lambda_gk'] = 3.0 * params['kappa_def']
+
+    params['int_dt'] = 0.04
+    params['max_int_time'] = 10
+    params['model_converge_tol'] = 0.01
+
+    params['time_to_control_att'] = time_to_control_veto * np.log(10) * ( np.sqrt(3) * params['tti_sigma'] / np.pi + 1 / params['lambda_att'] )
+    params['time_to_control_def'] = time_to_control_veto * np.log(10) * ( np.sqrt(3) * params['tti_sigma'] / np.pi + 1 / params['lambda_def'] )
+
+    return params
+
+
 class Player(object):
-    def __init__(self, pid, team, teamname, params, GKid):
+    def __init__(self, pid, team, teamname, GKid, params):
         self.id = pid
         self.isGK = self.id == GKid
         self.teamname = teamname
@@ -45,32 +67,11 @@ def initialise_players(team, teamname, params, GKid):
 
     team_players = []
     for player in player_ids:
-        p = Player(player, team, teamname, params, GKid)
+        p = Player(player, team, teamname, GKid, params)
         if p.inframe:
             team_players.append(p)
 
     return team_players
-
-
-def default_model_params(time_to_control_veto=3):
-    params = {}
-    params['max_player_accel'] = 7.
-    params['max_player_speed'] = 5.
-    params['reaction_time'] = 0.7
-    params['tti_sigma'] = 0.45
-    params['kappa_def'] = 1.
-    params['lambda_att'] = 4.3
-    params['lambda_def'] = 4.3 * params['kappa_def']
-    params['lambda_gk'] = 3.0 * params['kappa_def']
-
-    params['int_dt'] = 0.04
-    params['max_int_time'] = 10
-    params['model_converge_tol'] = 0.01
-
-    params['time_to_control_att'] = time_to_control_veto * np.log(10) * ( np.sqrt(3) * params['tti_sigma'] / np.pi + 1 / params['lambda_att'] )
-    params['time_to_control_def'] = time_to_control_veto * np.log(10) * ( np.sqrt(3) * params['tti_sigma'] / np.pi + 1 / params['lambda_def'] )
-
-    return params
 
 
 def check_offsides( attacking_players, defending_players, ball_position, GK_numbers, verbose=False, tol=0.2):
@@ -82,10 +83,10 @@ def check_offsides( attacking_players, defending_players, ball_position, GK_numb
     
     defending_half = np.sign(defending_GK.position[0])
     
-    deepest_defender_x = sorted( [p.position[0]*defending_half for p in defending_players if not p.id == defending_GK.id], reverse=True)
+    deepest_defender_x = sorted( [p.position[0]*defending_half for p in defending_players], reverse=True)[1]
 
     tol *= defending_half
-    ball_pos = ball_position * defending_half
+    ball_pos = ball_position[0] * defending_half
 
     offside_line = max(deepest_defender_x, ball_pos, 0.0) + tol
 
@@ -109,9 +110,9 @@ def calculate_pitch_control_at_target(target_pos, attacking_players, defending_p
     ta_min_def = np.nanmin( [p.simple_time_to_intercept(target_pos) for p in defending_players ] )
 
     if ta_min_att - max(ball_travel_time, ta_min_def) >= params['time_to_control_att']:
-        return 0. / 1.
+        return 0., 1.
     elif ta_min_def - max(ball_travel_time, ta_min_def) >= params['time_to_control_def']:
-        return 1. / 0.
+        return 1., 0.
     else:
         attacking_players = [p for p in attacking_players if p.time_to_intercept - ta_min_att < params['time_to_control_att']]
         defending_players = [p for p in defending_players if p.time_to_intercept - ta_min_def < params['time_to_control_def']]

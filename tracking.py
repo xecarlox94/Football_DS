@@ -1,5 +1,5 @@
 import metrica_IO as mio
-from viz import pitch_viz as pviz, metrica_viz as mviz
+from viz import pitch_viz as pviz, metrica_viz as mviz, metrica_pitchControl as mpc
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -14,14 +14,21 @@ away = teams[1]
 
 
 
+shots = events[events['Type'] == 'SHOT']
+goals = shots[shots['Subtype'].str.contains('-GOAL')].copy()
 
 
 
+mviz.plot_events(events.loc[820:823], color='k', annotate=True)
 
 
+params = mpc.default_model_params()
+
+GK_numbers = [mio.findGoalkeeper(home), mio.findGoalkeeper(away)]
 
 
-
+PPFC, xgrid, ygrid = mpc.generate_pitch_control_for_event(820, events, home, away, params, GK_numbers)
+mviz.plot_event_pitch_control(820, events, home, away, PPFC)
 
 
 
