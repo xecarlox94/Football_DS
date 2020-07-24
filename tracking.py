@@ -11,6 +11,11 @@ events, (home, away) = mio.readMatchData(2, pitchSize)
 
 
 
+
+
+
+"""
+#lecture 3
 shots = events[events['Type'] == 'SHOT']
 goals = shots[shots['Subtype'].str.contains('-GOAL')].copy()
 
@@ -23,7 +28,7 @@ params = mpc.default_model_params()
 
 GK_numbers = [mio.findGoalkeeper(home), mio.findGoalkeeper(away)]
 
-"""
+
 PPFC, xgrid, ygrid = mpc.generate_pitch_control_for_event(820, events, home, away, params, GK_numbers)
 mviz.plot_event_pitch_control(820, events, home, away, PPFC)
 
@@ -32,11 +37,11 @@ mviz.plot_event_pitch_control(821, events, home, away, PPFC)
 
 PPFC, xgrid, ygrid = mpc.generate_pitch_control_for_event(822, events, home, away, params, GK_numbers)
 mviz.plot_event_pitch_control(822, events, home, away, PPFC)
-"""
+
 
 home_passes = events[ (events['Type'].isin(['PASS'])) & (events['Team'] == 'Home') ]
 
-pass_probability = []
+pass_success_probability = []
 
 for i, row in home_passes.iterrows():
 
@@ -48,7 +53,27 @@ for i, row in home_passes.iterrows():
     def_plrs = mpc.initialise_players(away.loc[pass_frame], 'Away', params, GK_numbers[1])
     Patt,Pdef = mpc.calculate_pitch_control_at_target(pass_target_pos, att_plrs, def_plrs, pass_start_pos, params)
     
-    pass_probability.append( (i, Patt) )
+    pass_success_probability.append( (i, Patt) )
+    
+
+fig, ax = plt.subplots()
+ax.hist([p[1] for p in pass_success_probability], np.arange(0,1.1,0.1))
+ax.set_xlabel('Pass success probability')
+ax.set_ylabel('Frequency')
+
+
+pass_success_probability = sorted( pass_success_probability, key= lambda x: x[1] )
+
+risky_passes = events.loc[ [p[0] for p in pass_success_probability if p[1] < 0.5] ]
+
+mviz.plot_events(risky_passes, color='k', annotate=True)
+
+
+for p in pass_success_probability[:20]:
+    outcome = events.loc[ p[0] + 1 ].Type
+    print( p[1], outcome)
+
+"""
 
 
 """
