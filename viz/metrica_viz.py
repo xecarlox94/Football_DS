@@ -1,6 +1,7 @@
 from viz import pitch_viz as pviz
 import numpy as np
 import matplotlib.animation as animation
+import metrica_IO as mio
 
 def plot_events(events, figax=None, pitchSize=(106, 68), indicators=['Marker', 'Arrow'], color='r', marker_style='o', alpha=0.5, annotate=False):
     if figax is None:
@@ -126,5 +127,54 @@ def plot_event_pitch_control(eventid, events, track_home, track_away, PPFC, alph
         cmap = 'bwr'
         
     ax.imshow(np.flipud(PPFC), extent=(-field_dimen[0]/2., field_dimen[0]/2., -field_dimen[1]/2., field_dimen[1]/2.),interpolation='spline36', vmin=0, vmax=1.0, cmap=cmap, alpha=0.5)
+
+    return fig, ax
+
+
+def plot_EPV_for_event(event_id, events, track_home, track_away, PPCF, EPV, alpha=0.7, include_player_velocities=True, annotate=False, autoscale=.1, contours=False, field_dimen = (106.0,68)):
+
+    pass_frame = events.loc[event_id]['Start Frame']
+    pass_team = events.loc[event_id].Team
+
+    ((fig, ax, _), _) = pviz.createPitch(field_dimen[0], field_dimen[1])
+    
+    plot_frame(track_home.loc[pass_frame], track_away.loc[pass_frame], figax=(fig, ax), PlayerAlpha=alpha, include_player_velocities=include_player_velocities, annotate=annotate)
+    plot_events(events.loc[event_id:event_id], figax=(fig, ax), color='k', alpha=1)
+
+    if pass_team == 'Home':
+        cmap = 'Reds'
+        lcolor = 'r'
+        EPV = np.fliplr(EPV) if mio.find_playing_position(track_home, 'Home') == -1 else EPV
+    else:
+        cmap = 'Blues'
+        lcolor = 'b'
+        EPV = np.fliplr(EPV) if mio.find_playing_position(track_away, 'Away') == -1 else EPV
+
+    EPVxPPCF = EPV * PPCF
+
+    if autoscale is True:
+        vmax = np.max(EPVxPPCF) * 2
+    elif autoscale >= 0 and autoscale <= 1:
+        vmax = autoscale
+    else:
+        assert False, "'autoscale' must be either {True or between 0 and 1}"
+
+    ax.imshow(np.flipud(EPVxPPCF), extent=(-field_dimen[0]/2., field_dimen[0]/2., -field_dimen[1]/2., field_dimen[1]/2.), interpolation='spline36', vmin=0.0, vmax=vmax, cmap=cmap, alpha=0.7)
+    
+    if contours:
+        ax.contour(EPVxPPCF, extent=(-field_dimen[0]/2., field_dimen[0]/2., -field_dimen[1]/2., field_dimen[1]/2.), levels=np.array([0.75])*np.max(EPVxPPCF), colors=lcolor, alpha=1.0)
+
+    return fig, ax
+
+def plot_EPV(EPV, field_dimen=(106.0,68), attack_direction=1):
+
+    if attack_direction == -1:
+        EPV = np.fliplr(EPV)
+
+    ny, nx = EPV.shape
+
+    ((fig, ax, _), _) = pviz.createPitch(field_dimen[0], field_dimen[1])
+
+    ax.imshow(EPV, extent=(-field_dimen[0]/2., field_dimen[0]/2., -field_dimen[1]/2., field_dimen[1]/2.), vmin=0.0, vmax=0.6, cmap='Blues', alpha=0.6)
 
     return fig, ax
