@@ -144,6 +144,6 @@ def findGoalkeeper(track_team):
 
 
 def find_playing_position(track_team, teamname):
-    GK_col = teamname + findGoalkeeper(track_team) + '_x'
+    GK_col = teamname + '_' + findGoalkeeper(track_team) + '_x'
 
     return -np.sign(track_team.iloc[0][GK_col])

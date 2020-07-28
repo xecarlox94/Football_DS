@@ -122,9 +122,9 @@ def plot_event_pitch_control(eventid, events, track_home, track_away, PPFC, alph
     plot_events(events.loc[eventid:eventid], figax=(fig,ax), pitchSize=field_dimen, annotate=False, color='k', alpha=1, indicators = ['Marker','Arrow'])
 
     if pass_team == 'Home':
-        cmap = 'bwr_r'
-    else:
         cmap = 'bwr'
+    else:
+        cmap = 'bwr_r'
         
     ax.imshow(np.flipud(PPFC), extent=(-field_dimen[0]/2., field_dimen[0]/2., -field_dimen[1]/2., field_dimen[1]/2.),interpolation='spline36', vmin=0, vmax=1.0, cmap=cmap, alpha=0.5)
 

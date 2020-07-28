@@ -164,8 +164,8 @@ def generate_pitch_control_for_event(event_id, events, track_home, track_away, p
         attacking_players = initialise_players(track_home.loc[pass_frame], 'Home', params, GK_numbers[0])
         defending_players = initialise_players(track_away.loc[pass_frame], 'Away', params, GK_numbers[1])
     elif pass_team.lower() == 'away':
-        defending_players = initialise_players(track_away.loc[pass_frame], 'Away', params, GK_numbers[1])
-        attacking_players = initialise_players(track_home.loc[pass_frame], 'Home', params, GK_numbers[0])
+        defending_players = initialise_players(track_home.loc[pass_frame], 'Home', params, GK_numbers[0])
+        attacking_players = initialise_players(track_away.loc[pass_frame], 'Away', params, GK_numbers[1])
     else:
         assert False, "Teams need to be either home or away"
 

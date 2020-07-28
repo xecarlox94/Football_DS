@@ -1,8 +1,8 @@
-import metrica_IO as mio
-from viz import pitch_viz as pviz, metrica_viz as mviz, metrica_pitchControl as mpc
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import metrica_IO as mio
+from viz import pitch_viz as pviz, metrica_viz as mviz, metrica_pitchControl as mpc
+import metrica_EPV as mepv
 
 DATA_DIR = '/Users/jf94u/Desktop/Projects/football_dataScience/data'
 # 106, 68
@@ -10,8 +10,47 @@ pitchSize = (106, 68)
 events, (home, away) = mio.readMatchData(2, pitchSize)
 
 
+params = mpc.default_model_params()
+
+GK_numbers = [mio.findGoalkeeper(home), mio.findGoalkeeper(away)]
 
 
+home_attack_direction = mio.find_playing_position(home, 'Home')
+
+EPV = mepv.load_EPV_grid()
+
+
+mviz.plot_EPV(EPV, attack_direction=home_attack_direction)
+
+
+mviz.plot_events(events.loc[820: 823], color='k')
+
+
+event_number = 822
+
+EEPV_added, EEPV_diff = mepv.calculate_epv_added(event_number, events, home, away, GK_numbers, EPV, params)
+PPCF, xgrid, ygrid = mpc.generate_pitch_control_for_event(event_number, events, home, away, params, GK_numbers)
+
+mviz.plot_event_pitch_control(event_number, events, home, away, PPCF)
+
+fig, ax = mviz.plot_EPV_for_event(event_number, events, home, away, PPCF, EPV, autoscale=True)
+fig.suptitle('Pass added: %1.3f' % EEPV_added, y=0.95)
+
+
+
+shots = events[events['Type'] == 'SHOT']
+home_shots = shots[shots['Team'] == 'Home']
+away_shots = shots[shots['Team'] == 'Away']
+
+home_passes = events[ (events['Type'].isin(['PASS'])) & (events['Team'] == 'Home') ]
+away_passes = events[ (events['Type'].isin(['PASS'])) & (events['Team'] == 'Away') ]
+
+
+home_pass_value_added = []
+for i, passe in home_passes.iterrows():
+    EEPV_added, EEPV_diff = mepv.calculate_epv_added(i, events, home, away, GK_numbers, EPV, params)
+    home_pass_value_added.append(EEPV_added)
+home_pass_value_added = sorted(home_pass_value_added, key=lambda x: x[1], reverse=True)
 
 
 """

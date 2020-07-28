@@ -19,7 +19,7 @@ def get_EPV_at_position(position, EPV, attack_direction, field_dimen=(106.,68.))
         if attack_direction == -1:
             EPV = np.fliplr(EPV)
 
-        nx, ny = EPV.shape
+        ny, nx = EPV.shape
 
         dx = field_dimen[0] / float(nx)
         dy = field_dimen[1] / float(ny)
