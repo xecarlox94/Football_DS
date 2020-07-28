@@ -26,17 +26,14 @@ mviz.plot_EPV(EPV, attack_direction=home_attack_direction)
 mviz.plot_events(events.loc[820: 823], color='k')
 
 
-event_number = 822
+def plot_valuable_pass(event_number):
+    EEPV_added, EEPV_diff = mepv.calculate_epv_added(event_number, events, home, away, GK_numbers, EPV, params)
+    PPCF, xgrid, ygrid = mpc.generate_pitch_control_for_event(event_number, events, home, away, params, GK_numbers)
+    mviz.plot_event_pitch_control(event_number, events, home, away, PPCF)
+    fig, ax = mviz.plot_EPV_for_event(event_number, events, home, away, PPCF, EPV, autoscale=True)
+    fig.suptitle('Pass added: %1.3f' % EEPV_added, y=0.95)
 
-EEPV_added, EEPV_diff = mepv.calculate_epv_added(event_number, events, home, away, GK_numbers, EPV, params)
-PPCF, xgrid, ygrid = mpc.generate_pitch_control_for_event(event_number, events, home, away, params, GK_numbers)
-
-mviz.plot_event_pitch_control(event_number, events, home, away, PPCF)
-
-fig, ax = mviz.plot_EPV_for_event(event_number, events, home, away, PPCF, EPV, autoscale=True)
-fig.suptitle('Pass added: %1.3f' % EEPV_added, y=0.95)
-
-
+#plot_valuable_pass(822)
 
 shots = events[events['Type'] == 'SHOT']
 home_shots = shots[shots['Team'] == 'Home']
@@ -49,8 +46,19 @@ away_passes = events[ (events['Type'].isin(['PASS'])) & (events['Team'] == 'Away
 home_pass_value_added = []
 for i, passe in home_passes.iterrows():
     EEPV_added, EEPV_diff = mepv.calculate_epv_added(i, events, home, away, GK_numbers, EPV, params)
-    home_pass_value_added.append(EEPV_added)
+    home_pass_value_added.append( (i, EEPV_added, EEPV_diff) )
 home_pass_value_added = sorted(home_pass_value_added, key=lambda x: x[1], reverse=True)
+
+away_pass_value_added = []
+for i, passe in away_passes.iterrows():
+    EEPV_added, EEPV_diff = mepv.calculate_epv_added(i, events, home, away, GK_numbers, EPV, params)
+    away_pass_value_added.append( (i, EEPV_added, EEPV_diff) )
+away_pass_value_added = sorted(away_pass_value_added, key=lambda x: x[1], reverse=True)
+
+
+for p in away_pass_value_added[:3]:
+    plot_valuable_pass(p[0])
+
 
 
 """
