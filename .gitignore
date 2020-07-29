@@ -3,3 +3,6 @@
 __pycache__/
 
 *.mp4
+
+/data/wy_scout/events/
+/data/wy_scout/matches/
