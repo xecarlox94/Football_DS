@@ -95,4 +95,50 @@ def createPitch( width=130, height=90, spotSize = 0.3, lineColor = "black"):
     
     return figaxplt, pitchDimen
 
-createPitch()
+
+def createGoalMouthPitch():
+    fig = plt.figure()
+    ax = fig.add_subplot(1,1,1)
+    
+    clr = 'black'
+    
+    
+    # main half pitch lines
+    plt.plot([0,65], [0,0], color=clr)
+    plt.plot([65,65], [50,0], color=clr)
+    plt.plot([0,0], [50,0], color=clr)
+    
+    # penalty area
+    plt.plot([12.5, 52.5], [16.5, 16.5], color=clr)
+    plt.plot([52.5, 52.5], [16.5, 0], color=clr)
+    plt.plot([12.5, 12.5], [16.5, 0], color=clr)
+    
+    # 6 yard box
+    plt.plot([41.5, 41.5], [5.5, 0], color=clr)
+    plt.plot([23.5, 41.5], [5.5, 5.5], color=clr)
+    plt.plot([23.5, 23.5], [5.5, 0], color=clr)
+    
+    # goal
+    
+    
+    # penalty spot
+    penSpot = plt.Circle((65/2, 11), 0.5, color=clr)
+    
+    ax.add_patch(penSpot)
+    
+    
+    arc = Arc((65/2, 11), height=18.3, width=18.3, angle=0, theta1=38, theta2=142, color=clr)
+    
+    ax.add_patch(arc)
+    
+    
+    plt.axis('off')
+    
+    figaxplt = fig, ax, plt
+    
+    return figaxplt
+    
+    
+    
+    
+    
