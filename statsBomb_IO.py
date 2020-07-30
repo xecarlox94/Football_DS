@@ -10,7 +10,6 @@ matches_dir = main_dir + "matches/"
 competitions_fileUrl = main_dir + "competitions.json"
 
 def getCompetitions():
-    print(competitions_fileUrl)
     with open(competitions_fileUrl) as f:
         competitions = json.load(f)
     return competitions
