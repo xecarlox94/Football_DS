@@ -2,7 +2,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from viz import pitch_viz as pviz
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+
+
 import json
 
 with open('data/wy_scout/events/events_England.json') as f:
@@ -46,12 +49,11 @@ for i, shot in shots.iterrows():
     shots_model.at[i, 'Goal'] = goal
 
 
-
+"""
 H_shot = np.histogram2d(shots_model['X'], shots_model['Y'], bins=50, range=[[0, 100], [0, 100]])
 
 shots_goals = shots_model[shots_model['Goal'] == True]
 H_goal = np.histogram2d(shots_goals['X'], shots_goals['Y'], bins=50, range=[[0, 100], [0, 100]])
-
 
 
 (fig, ax, _) = pviz.createGoalMouthPitch()
@@ -85,6 +87,44 @@ plt.ylim((-3, 50))
 plt.tight_layout()
 plt.gca().set_aspect('equal', adjustable='box')
 plt.show()
+"""
+
+"""
+minutes_played = np.array([120, 452, 185, 708, 340, 561])
+goals_scored = np.array([1, 6, 3, 7, 3, 5])
+
+minutes_model = pd.DataFrame()
+minutes_model = minutes_model.assign(minutes=minutes_played)
+minutes_model = minutes_model.assign(goals=goals_scored)
 
 
+fig, ax = plt.subplots(num=1)
+ax.plot(minutes_played, goals_scored, linestyle='none', marker='.', markerSize=12, color='black')
+ax.set_ylabel('Goals Scored')
+ax.set_xlabel('Minutes Played')
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+plt.xlim((0, 750))
+plt.ylim((0, 8))
+
+
+a=0
+
+model_fit = smf.ols(formula='goals_scored ~ minutes_played - 1', data=minutes_model).fit()
+print(model_fit.summary())
+[b] = model_fit.params
+
+
+x = np.arange(800, step=0.1)
+y = a + b * x
+
+ax.plot(x,y, color='black')
+
+for i, mp in enumerate(minutes_played):
+    ax.plot([mp, mp], [goals_scored[i], a+b*mp], color='red')
+
+
+12:00
+
+"""
 
