@@ -13,33 +13,47 @@ team_ids = [match['home_team_home_team_id'],match['away_team_away_team_id']]
 
 events = sio.getMatchEvents(match)
 
-limit = 120
+limit = 200
 
 
 poss_chains = []
-curr_team_poss = 0
-curr_chain_poss = []
+p = dict()
 
 for i, e in events.iterrows():
     type_id = e['type_id']
+    team_id = e['team_id']
     
-    if type_id in [35, 18]: 
+    if type_id in [35, 18, 5]: 
         continue 
     
-    if type_id == 30:
-        pass_type = e['pass_type_id']
+    if type_id == 30: # pass
+        p_type = e['pass_type_id']
+        p_outcome = e['pass_outcome_id']
         
-        if np.isnan(pass_type):
+        if 'p_team' not in p:
+            p['p_team'] = team_id
+        elif p['p_team'] != team_id:
+            p['end'] = i - 1
+            poss_chains.append(p)
+            p = dict()
+            p['p_team'] = team_id
+            p['str'] = i
+        
+        if np.isnan(p_type): # normal pass
             print('continuing chain')
         
-        if pass_type in [61, 62, 63, 65, 67]:
+        if p_type in [61, 62, 63, 65, 67]: # set piece pass
             print('-> start chain')
+            p['p_team'] = team_id
+            p['str'] = i
+            
+            # rel_events = events[events['id'] in pass_incomplete['related_events']]
+            
+        if p_outcome in [9, 74, 75, 76]: # chain stopped
         
-    elif type_id == 42:
-        print('ball receipt')
+    #elif type_id == 42: # ball receipt
         
-    elif type_id == 43:
-        print('carry')
+    #elif type_id == 43: # ball carrying
     
     
     if i > limit: break

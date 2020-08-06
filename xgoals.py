@@ -89,6 +89,7 @@ plt.gca().set_aspect('equal', adjustable='box')
 plt.show()
 """
 
+
 """
 minutes_played = np.array([120, 452, 185, 708, 340, 561])
 goals_scored = np.array([1, 6, 3, 7, 3, 5])
@@ -123,8 +124,10 @@ ax.plot(x,y, color='black')
 for i, mp in enumerate(minutes_played):
     ax.plot([mp, mp], [goals_scored[i], a+b*mp], color='red')
 
-
-12:00
-
 """
+
+
+x = np.arange(5, step=0.1)
+
+y =1 / (1 + np.exp(-b[0] -b[1]*x) )
 
