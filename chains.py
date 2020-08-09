@@ -14,14 +14,16 @@ events = sio.getMatchEvents(match)
 poss_chains = []
 p = dict()
 
-limit = 200
+limit = 2000
+
 
 for i, e in events.iterrows():
     type_id = e['type_id']
     team_id = e['team_id']
         
     if type_id in [35, 18, 5]: 
-        continue 
+        continue
+    
     
     if type_id == 34:
         if 'p_team' not in p:
@@ -55,9 +57,38 @@ for i, e in events.iterrows():
             p['str'] = i
             
         if p_outcome == 9: # chain stopped
-            # rel_events = events[events['id'] in pass_incomplete['related_events']]
+            rel_events = events[events['id'].isin(e['related_events'])]
+            #print(i, 'Chained stopped')
+            
+            
+            #print('\n', e['period'], '->', e['timestamp'])
+            
+            for j, evt in rel_events.iterrows():
+                if j < i:
+                    continue
+                
+                evt_type = evt['type_id']
+                evt_name = evt['type_name']
+                
+                
+                if evt_type not in [17, 42, 22, 6]: 
+                    print(str(evt_type) + ': ' + evt_name)
+                
+                #print(str(evt_type) + ': (' + str(i) + ') ' + evt_name)
+                
+                r_events= set()
+                if evt_type in [17, 42]:
+                    r_events.add(j)
+            
+            continue
+            
     
-    #if carry different team 
+    if type_id == 42:
+        if team_id != p['p_team']:
+            print('POSITION CHANGED ERROR')
+        
     
+    
+    # shots
     
     #if i > limit: break
