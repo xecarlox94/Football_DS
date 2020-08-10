@@ -29,9 +29,14 @@ for i, e in events.iterrows():
     
     if type_id == 23:
         gk_evt_type = int(e['goalkeeper_type_id'])
-        print(i, gk_evt_type, e['goalkeeper_type_name'])
+        #print(i, gk_evt_type, e['goalkeeper_type_name'])
         
         if gk_evt_type == 25:
+            if 'str' in p:
+                if 'end' not in p:
+                    p['end'] = i - 1
+                poss_chains.append(p)
+                p = dict()
             p['str'] = i
             p['p_team'] = team_id
         
@@ -59,9 +64,24 @@ for i, e in events.iterrows():
         p['end'] = i - 1
         poss_chains.append(p)
         p = dict()
+    
+    if type_id == 10:
+        if 'str' in p:
+            if 'end' not in p:
+                p['end'] = i - 1
+            poss_chains.append(p)
+            p = dict()
+        p['str'] = i
+        p['p_team'] = team_id
         
+        # end chain if outcome is bad
         
     if type_id == 2:
+        if 'str' in p:
+            if 'end' not in p:
+                p['end'] = i - 1
+            poss_chains.append(p)
+            p = dict()
         p['str'] = i
         p['p_team'] = team_id
         
@@ -72,6 +92,11 @@ for i, e in events.iterrows():
         
         if p_type in [64, 66]:
             #if 'str' in p: # raise error if chain was not closed
+            if 'str' in p:
+                if 'end' not in p:
+                    p['end'] = i - 1
+                poss_chains.append(p)
+            p = dict()
             p['str'] = i
             p['p_team'] = team_id
         
@@ -100,8 +125,13 @@ for i, e in events.iterrows():
                 p['p_team'] = team_id
                 p['str'] = i
             
-        if p_outcome == 9: # chain stopped
-            rel_events = events[events['id'].isin(e['related_events'])]
+        if p_outcome in [9, 74, 75, 76]: # chain stopped
+            r_evts = e['related_events']
+            
+            if type(r_evts) != list:
+                continue
+            
+            rel_events = events[events['id'].isin(r_evts)]
             
             for j, evt in rel_events.iterrows():
                 if j < i:
@@ -110,8 +140,7 @@ for i, e in events.iterrows():
                 evt_type = evt['type_id']
                 evt_name = evt['type_name']
                 
-                if evt_type in [17, 42, 22, 6, 9]:
-                    
+                if evt_type in [17, 42, 22, 21, 6]:
                     if skip < j:
                         skip = j
                 
@@ -123,7 +152,7 @@ for i, e in events.iterrows():
                             if skip < j:
                                 skip = j
             
-            p['end'] = j
+            p['end'] = skip
             poss_chains.append(p)
             p = dict()
         
