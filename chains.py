@@ -27,14 +27,36 @@ for i, e in events.iterrows():
     if type_id in [35, 18, 5]: 
         continue
     
-    if type_id == 23:
+    if type_id == 34: # half end
+        #if 'p_team' not in p:
+            #p['p_team'] = team_id
+        
+        if 'str' not in p:
+            continue
+        
+        # assert if the start field does not exist
+        p['end'] = i - 1
+        poss_chains.append(p)
+        p = dict()
+    
+    if type_id == 9:
+        p['end'] = i - 1
+        poss_chains.append(p)
+        p = dict()
+        p['str'] = i
+        p['p_team'] = team_id
+        p['end'] = i
+        poss_chains.append(p)
+        p = dict()
+        
+
+    if type_id == 23: # goalkeepereve
         gk_evt_type = int(e['goalkeeper_type_id'])
         #print(i, gk_evt_type, e['goalkeeper_type_name'])
         
         if gk_evt_type == 25:
             if 'str' in p:
-                if 'end' not in p:
-                    p['end'] = i - 1
+                p['end'] = i - 1
                 poss_chains.append(p)
                 p = dict()
             p['str'] = i
@@ -50,38 +72,27 @@ for i, e in events.iterrows():
             p['end'] = i
             poss_chains.append(p)
             p = dict()
-        
     
-    
-    if type_id == 34:
-        #if 'p_team' not in p:
-            #p['p_team'] = team_id
-        
-        if 'str' not in p:
-            continue
-        
-        # assert if the start field does not exist
-        p['end'] = i - 1
-        poss_chains.append(p)
-        p = dict()
-    
-    if type_id == 10:
+    if type_id == 10: # interception
         if 'str' in p:
-            if 'end' not in p:
-                p['end'] = i - 1
+            p['end'] = i - 1
             poss_chains.append(p)
             p = dict()
         p['str'] = i
         p['p_team'] = team_id
         
         # end chain if outcome is bad
-        
-    if type_id == 2:
-        if 'str' in p:
-            if 'end' not in p:
-                p['end'] = i - 1
+        i_outcome_id = e['interception_outcome_id']
+        if i_outcome_id not in [15, 16, 4]:
+            p['end'] = i
             poss_chains.append(p)
             p = dict()
+        
+    if type_id == 2: # ball recovery
+        if 'str' in p:
+            p['end'] = i - 1
+            poss_chains.append(p)
+        p = dict()
         p['str'] = i
         p['p_team'] = team_id
         
@@ -93,21 +104,19 @@ for i, e in events.iterrows():
         if p_type in [64, 66]:
             #if 'str' in p: # raise error if chain was not closed
             if 'str' in p:
-                if 'end' not in p:
-                    p['end'] = i - 1
+                p['end'] = i - 1
                 poss_chains.append(p)
+            
             p = dict()
             p['str'] = i
             p['p_team'] = team_id
         
         if p_type in [61, 62, 63, 65, 67]: # set piece pass
+            
             if 'str' in p:
-                if 'end' not in p:
-                    p['end'] = i - 1
+                p['end'] = i - 1
                 poss_chains.append(p)
                 
-            #else: #if chain was not found, raise error
-            
             p = dict()
             p['p_team'] = team_id
             p['str'] = i
@@ -140,7 +149,7 @@ for i, e in events.iterrows():
                 evt_type = evt['type_id']
                 evt_name = evt['type_name']
                 
-                if evt_type in [17, 42, 22, 21, 6]:
+                if evt_type in [17, 42, 21, 6, 4]:
                     if skip < j:
                         skip = j
                 
@@ -165,4 +174,4 @@ for i, e in events.iterrows():
 
 poss_chains = pd.DataFrame(poss_chains)
 
-poss_chains['diff'] = pd.Series([poss_chains.iloc[i]['end'] - poss_chains.iloc[i+1]['str'] + 1 for i in range(len(poss_chains) - 1)])
+poss_chains['diff'] = pd.Series([poss_chains.iloc[i + 1]['str'] - poss_chains.iloc[i]['end'] - 1 for i in range(len(poss_chains) - 1)])

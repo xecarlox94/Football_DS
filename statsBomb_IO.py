@@ -1,7 +1,7 @@
 import pandas as pd
 import json
 
-main_dir = "data/sports_bomb/data/"
+main_dir = "data/stats_bomb/data/"
 events_dir = main_dir + "events/"
 lineups_dir = main_dir + "lineups/"
 matches_dir = main_dir + "matches/"
