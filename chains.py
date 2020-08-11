@@ -162,3 +162,7 @@ for i, e in events.iterrows():
     # shots
     
     #if i > limit: break
+
+poss_chains = pd.DataFrame(poss_chains)
+
+poss_chains['diff'] = pd.Series([poss_chains.iloc[i]['end'] - poss_chains.iloc[i+1]['str'] + 1 for i in range(len(poss_chains) - 1)])
