@@ -40,9 +40,11 @@ for i, e in events.iterrows():
         p = dict()
     
     if type_id == 9:
-        p['end'] = i - 1
-        poss_chains.append(p)
-        p = dict()
+        if 'str' in p:
+            p['end'] = i - 1
+            poss_chains.append(p)
+            
+        p = dict()            
         p['str'] = i
         p['p_team'] = team_id
         p['end'] = i
@@ -175,3 +177,6 @@ for i, e in events.iterrows():
 poss_chains = pd.DataFrame(poss_chains)
 
 poss_chains['diff'] = pd.Series([poss_chains.iloc[i + 1]['str'] - poss_chains.iloc[i]['end'] - 1 for i in range(len(poss_chains) - 1)])
+
+poss_chains['single_event_chain'] = poss_chains['str'] == poss_chains['end']
+
