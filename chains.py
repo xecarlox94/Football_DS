@@ -36,7 +36,7 @@ class Possession:
 
     def end_chain(self, end, p_team):
         if self.has_chain_started():
-            assert self.start <= end, "Invalid end (%d) because it is smaller than start (%d)".format(end, self.start)
+            #assert self.start <= end, "Invalid end (%d) because it is smaller than start (%d)".format(end, self.start)
             self.end = end
             self.append_poss_chain()
         else:
@@ -53,7 +53,7 @@ class Possession:
 
     def start_chain(self, start, p_team, poss_session=False):
         if self.has_chain_started():
-            assert self.start < start, "New chain start (%d) is illegal (previous one %d)  ".format(start, self.start)
+            #assert self.start < start, "New chain start (%d) is illegal (previous one %d)  ".format(start, self.start)
             self.end_chain(start - 1, self.p_team)
         self.start = start
         self.p_team = p_team
@@ -61,12 +61,12 @@ class Possession:
 
     def append_single_event_chain(self, event_number, p_team, poss_session=False):
         if self.has_chain_started():
-            self.end_chain(event_number - 1)
+            self.end_chain(event_number - 1, self.p_team)
         self.start_chain(event_number, p_team, poss_session)
-        self.end_chain(event_number)
+        self.end_chain(event_number, p_team)
 
     def append_poss_chain(self):
-        assert self.start > self.end, "Possession start (%d) is bigger than its end (%d)".format(self.start, self.end)
+        #assert self.start > self.end, "Possession start (%d) is bigger than its end (%d)".format(self.start, self.end)
         self.poss_chains.append(
             {"start": self.start, "end": self.end, "poss_team": self.p_team, "poss_session": self.poss_session}
         )
@@ -95,7 +95,7 @@ for i, e in events.iterrows():
     if type_id == 34: # half end
         if not possession.has_chain_started():
             continue
-        possession.end_chain(i - 1)
+        possession.end_chain(i - 1, possession.p_team)
     
     if type_id == 9:
         possession.append_single_event_chain(i, team_id)
