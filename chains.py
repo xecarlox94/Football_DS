@@ -66,10 +66,10 @@ class Possession:
         self.end_chain(event_number, p_team)
 
     def append_poss_chain(self):
-        #assert self.start > self.end, "Possession start (%d) is bigger than its end (%d)".format(self.start, self.end)
-        self.poss_chains.append(
-            {"start": self.start, "end": self.end, "poss_team": self.p_team, "poss_session": self.poss_session}
-        )
+        if self.end >= self.start:
+            self.poss_chains.append(
+                {"start": self.start, "end": self.end, "poss_team": self.p_team, "poss_session": self.poss_session}
+            )
         self.p_team = -1
         self.start = -1
         self.end = -1
@@ -116,6 +116,7 @@ for i, e in events.iterrows():
             possession.start_chain(i, team_id)
         
     if type_id == 2: # ball recovery
+        
         possession.start_chain(i, team_id)
         
     
@@ -170,6 +171,4 @@ df_poss = possession.dataframe()
 df_poss['diff'] = pd.Series([df_poss.iloc[i + 1]['start'] - df_poss.iloc[i]['end'] - 1 for i in range(len(df_poss) - 1)])
 
 df_poss['single_event_chain'] = df_poss['start'] == df_poss['end']
-
-df_poss['mistake'] = df_poss['start'] > df_poss['end']
 
