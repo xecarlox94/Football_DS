@@ -45,8 +45,10 @@ class Possession:
             self.start_chain(new_start, p_team)
             self.add_end(end, p_team)
 
-    def start_chain_if_change(self, event_number, p_team, poss_session=False):
+    def start_chain_if_necessary(self, event_number, p_team, poss_session=False):
         if self.has_chain_started() and not self.is_same_team_poss(p_team):
+            self.start_chain(event_number, p_team, poss_session)
+        elif not self.has_chain_started():
             self.start_chain(event_number, p_team, poss_session)
 
     def start_chain(self, start, p_team, poss_session=False):
@@ -96,53 +98,25 @@ for i, e in events.iterrows():
         possession.end_chain(i - 1)
     
     if type_id == 9:
-        possession.append_poss_chain(i,team_id)
+        possession.append_single_event_chain(i, team_id)
 
     if type_id == 23: # goalkeeper
         gk_evt_type = int(e['goalkeeper_type_id'])
-        #print(i, gk_evt_type, e['goalkeeper_type_name'])
-
         if gk_evt_type == 25:
-            if 'str' in p:
-                p['end'] = i - 1
-                poss_chains.append(p)
-                p = dict()
-            p['str'] = i
-            p['p_team'] = team_id
+            possession.start_chain(i, team_id)
         
         if gk_evt_type == 30:
-            if 'str' not in p:
-                p['str'] = i
-                
-            if 'p_team' not in p:
-                p['p_team'] = team_id
-                
-            p['end'] = i
-            poss_chains.append(p)
-            p = dict()
+            possession.append_single_event_chain(i, team_id)
     
     if type_id == 10: # interception
-        if 'str' in p:
-            p['end'] = i - 1
-            poss_chains.append(p)
-            p = dict()
-        p['str'] = i
-        p['p_team'] = team_id
-        
-        # end chain if outcome is bad
         i_outcome_id = e['interception_outcome_id']
         if i_outcome_id not in [15, 16, 4]:
-            p['end'] = i
-            poss_chains.append(p)
-            p = dict()
+            possession.append_single_event_chain(i, team_id)
+        else:
+            possession.start_chain(i, team_id)
         
     if type_id == 2: # ball recovery
-        if 'str' in p:
-            p['end'] = i - 1
-            poss_chains.append(p)
-        p = dict()
-        p['str'] = i
-        p['p_team'] = team_id
+        possession.start_chain(i, team_id)
         
     
     if type_id == 30: # pass
@@ -150,37 +124,12 @@ for i, e in events.iterrows():
         p_outcome = e['pass_outcome_id']
         
         if p_type in [64, 66]:
-            #if 'str' in p: # raise error if chain was not closed
-            if 'str' in p:
-                p['end'] = i - 1
-                poss_chains.append(p)
-            
-            p = dict()
-            p['str'] = i
-            p['p_team'] = team_id
+            possession.start_chain(i, team_id)
         
         if p_type in [61, 62, 63, 65, 67]: # set piece pass
-            
-            if 'str' in p:
-                p['end'] = i - 1
-                poss_chains.append(p)
-                
-            p = dict()
-            p['p_team'] = team_id
-            p['str'] = i
+            possession.start_chain(i, team_id, poss_session=True)
         
-        if 'p_team' in p:
-            if p['p_team'] != team_id:
-                #assert False, 'Possession Chain Leak, line ' + str(i)
-                p['end'] = i - 1
-                poss_chains.append(p)
-                p = dict()
-                p['p_team'] = team_id
-                p['str'] = i
-
-            if 'p_team' not in p:
-                p['p_team'] = team_id
-                p['str'] = i
+        possession.start_chain_if_necessary(i, team_id)
             
         if p_outcome in [9, 74, 75, 76]: # chain stopped
             r_evts = e['related_events']
@@ -208,15 +157,11 @@ for i, e in events.iterrows():
                         if gk_evt_type in [30, 27, 31]:
                             if skip < j:
                                 skip = j
+
+            possession.end_chain(skip, team_id)
             
-            p['end'] = skip
-            poss_chains.append(p)
-            p = dict()
-        
-    
-    
-    
-    # shots
+    # SHOTS
+    # add possession session to all shots from set pieces: IMPORTANT
     
     #if i > limit: break
 
