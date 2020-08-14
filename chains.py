@@ -2,9 +2,9 @@ import statsBomb_IO as sio
 import pandas as pd
 import numpy as np
 
-competition = sio.getCompetitions()[25]
+competition = sio.getCompetitions()[0] #0 #23
 
-match = sio.getMatches(competition).iloc[24]
+match = sio.getMatches(competition).iloc[0] #0 #7
 
 team_ids = [match['home_team_home_team_id'],match['away_team_away_team_id']]
 
@@ -15,7 +15,13 @@ class Possession:
     def __init__(self, home_team_id, away_team_id):
         self.teams_ids = (home_team_id, away_team_id)
         self.poss_chains = []
-        self.set_values()
+        self.start = -1
+        self.p_team = -1
+        self.poss_init = False
+        self.end = -1
+        
+    def is_team_in_possession(self, team_id):
+        return self.p_team == team_id
 
     def get_opposition_team_id(self, team_id):
         if self.teams_ids[0] == team_id:
@@ -30,7 +36,9 @@ class Possession:
         self.p_team = p_team
         self.poss_init = poss_init
         self.end = end
-
+        
+    def get_last_poss_chain(self):
+        return self.poss_chains[len(self.poss_chains) - 1]
 
     def has_chain_started(self):
         return self.start != -1 and self.p_team != -1
@@ -41,9 +49,16 @@ class Possession:
     def is_same_team_poss(self, p_team):
         return self.p_team == p_team
 
-    def end_chain(self, end):
-        if self.has_chain_started() and self.start <= end:
-            self.end = end
+    def merge_with_previous_chain(self, end):
+        l_poss = self.get_last_poss_chain()
+        l_poss['end'] = end
+
+    def end_chain(self, end, merge_pre=False):
+        if self.has_chain_started():
+            if self.start <= end:
+                self.end = end
+        elif merge_pre:
+            self.merge_with_previous_chain(end)
         self.append_poss_chain()
 
     def start_chain_if_necessary(self, event_number, p_team, poss_init=False):
@@ -60,13 +75,14 @@ class Possession:
                 return
             self.end_chain(start - 1)
         elif poss_init and len(self.poss_chains) > 1:
-            last_poss = self.poss_chains[len(self.poss_chains) - 1]
+            last_poss = self.get_last_poss_chain()
             if last_poss['end'] < start - 1:
                 last_poss['end'] = start - 1
         self.set_values(start, p_team, poss_init)
+        
 
-    def single_event_chain(self, event_number, p_team, poss_session=False):
-        self.start_chain(event_number, p_team, poss_session)
+    def single_event_chain(self, event_number, p_team, poss_init=False):
+        self.start_chain(event_number, p_team, poss_init)
         self.end_chain(event_number)
 
     def append_poss_chain(self):
@@ -81,11 +97,8 @@ class Possession:
 
 
 possession = Possession(team_ids[0], team_ids[1])
-skip = -1
 
 for i, e in events.iterrows():
-    if i <= skip:
-        continue
 
     type_id = e['type_id']
     team_id = e['team_id']
@@ -100,23 +113,43 @@ for i, e in events.iterrows():
     # dispossesed
     # duel
     
-    # pressure means the team does not have the ball
+    """
+    if type_id == 40: # injury stoppage
+        possession.end_chain(i, merge_pre=True)
+    """
+    if type_id == 14: # dribble
+        possession.start_chain_if_necessary(i, team_id)
+        
+    if type_id == 43: # carry
+        possession.start_chain_if_necessary(i, team_id)
     
-    if type_id == 34: # half end
-        if not possession.has_chain_started():
-            continue
-        possession.end_chain(i - 1)
-    
-    if type_id == 9:
+    if type_id == 9: # clearance
         possession.single_event_chain(i, team_id)
+        
+        
+    if type_id == 16: # shots
+        shot_type = e['shot_type_id']
+        if shot_type in [61, 62, 88, 65]:
+            possession.start_chain(i, team_id, poss_init=True)
+        else:
+            possession.start_chain_if_necessary(i, team_id)
 
     if type_id == 23: # goalkeeper
         gk_evt_type = int(e['goalkeeper_type_id'])
-        if gk_evt_type == 25:
+        gk_evt_outcome = e['goalkeeper_outcome_id']
+        if np.isnan(gk_evt_outcome):
+            continue
+        else:
+            gk_evt_outcome = int(gk_evt_outcome)
+            
+        if gk_evt_type == 25 and gk_evt_outcome != 50:
             possession.start_chain(i, team_id)
-        
-        if gk_evt_type == 30:
-            possession.single_event_chain(i, team_id)
+            
+        if gk_evt_type == 27 and gk_evt_outcome != 50:
+            if gk_evt_outcome == 48:
+                possession.single_event_chain(i, team_id)
+            else:
+                possession.start_chain(i, team_id)
     
     if type_id == 10: # interception
         i_outcome_id = e['interception_outcome_id']
@@ -124,7 +157,10 @@ for i, e in events.iterrows():
             possession.single_event_chain(i, team_id)
         else:
             possession.start_chain(i, team_id)
-
+            
+    if type_id == 17: # pressure
+        p_team = possession.get_opposition_team_id(team_id)
+        possession.start_chain_if_necessary(i, p_team)
         
     if type_id == 2: # ball recovery
         possession.start_chain(i, team_id)
@@ -132,19 +168,28 @@ for i, e in events.iterrows():
     if type_id == 30: # pass
         p_type = e['pass_type_id']
         p_outcome = e['pass_outcome_id']
-        
-        if p_type in [64, 66]:
-            possession.start_chain(i, team_id)
-        
         if p_type in [61, 62, 63, 65, 67]: # set piece pass
             possession.start_chain(i, team_id, poss_init=True)
-        
+        if p_type in [64, 66]: # interception, recovery
+            possession.start_chain(i, team_id)
         possession.start_chain_if_necessary(i, team_id)
+    
+    """
+    if type_id == 22:
+        is_offensive = e['foul_committed_offensive']
+        
+        if not is_offensive:
+            p_team = possession.get_opposition_team_id(team_id)
+        else:
+            p_team = team_id
+    """
+            
         
 
 df_poss = possession.dataframe()
 
+df_poss['length'] = pd.Series([df_poss.iloc[i]['end'] - df_poss.iloc[i]['start'] for i in range(len(df_poss) - 1)])
+
 df_poss['diff'] = pd.Series([df_poss.iloc[i + 1]['start'] - df_poss.iloc[i]['end'] - 1 for i in range(len(df_poss) - 1)])
 
 df_poss['single_event_chain'] = df_poss['start'] == df_poss['end']
-
