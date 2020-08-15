@@ -2,9 +2,9 @@ import statsBomb_IO as sio
 import pandas as pd
 import numpy as np
 
-competition = sio.getCompetitions()[0] #0 #23
+competition = sio.getCompetitions()[23] #0 #23
 
-match = sio.getMatches(competition).iloc[0] #0 #7
+match = sio.getMatches(competition).iloc[7] #0 #7
 
 team_ids = [match['home_team_home_team_id'],match['away_team_away_team_id']]
 
@@ -193,3 +193,13 @@ df_poss['length'] = pd.Series([df_poss.iloc[i]['end'] - df_poss.iloc[i]['start']
 df_poss['diff'] = pd.Series([df_poss.iloc[i + 1]['start'] - df_poss.iloc[i]['end'] - 1 for i in range(len(df_poss) - 1)])
 
 df_poss['single_event_chain'] = df_poss['start'] == df_poss['end']
+
+
+def print_leaks(df_events, df_poss):
+    chain_leaks = [ (c['end'] + 1, c['diff']) for i, c in df_poss.iterrows() if c['diff'] > 0]
+    for c in chain_leaks:
+        for i in range(int(c[1])):
+            index = c[0] + i
+            print(index, df_events.iloc[index]['type_name'])
+            
+print_leaks(events, df_poss)
