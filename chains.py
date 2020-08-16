@@ -2,9 +2,9 @@ import statsBomb_IO as sio
 import pandas as pd
 import numpy as np
 
-competition = sio.getCompetitions()[23] #0 #23
+competition = sio.getCompetitions()[0] #0 #23
 
-match = sio.getMatches(competition).iloc[7] #0 #7
+match = sio.getMatches(competition).iloc[0] #0 #7
 
 team_ids = [match['home_team_home_team_id'],match['away_team_away_team_id']]
 
@@ -179,12 +179,23 @@ for i, e in events.iterrows():
         is_offensive = e['foul_committed_offensive']
         
         if not is_offensive:
+            p_team = team_id
+        else:
+            p_team = possession.get_opposition_team_id(team_id)
+            
+        possession.start_chain_if_necessary(i, p_team)
+        
+    if type_id == 21:
+        is_defensive = e['foul_won_defensive']
+        
+        if not is_defensive:
             p_team = possession.get_opposition_team_id(team_id)
         else:
             p_team = team_id
-    """
             
-        
+        possession.start_chain_if_necessary(i, p_team)
+    """  
+    
 
 df_poss = possession.dataframe()
 
