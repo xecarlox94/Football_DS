@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 
-
 import json
 
 with open('data/wy_scout/events/events_England.json') as f:
@@ -15,7 +14,7 @@ with open('data/wy_scout/events/events_England.json') as f:
 train = pd.DataFrame(data)
 shots = train[ train['subEventName'] == 'Shot']
 
-shots_model = pd.DataFrame(columns=['X', 'Y', 'C', 'Distance', 'Angle', 'Goal'])
+shots_model = pd.DataFrame(columns=['Goal', 'X', 'Y', 'C', 'Distance', 'Angle'])
 
 for i, shot in shots.iterrows():
     header = False
@@ -35,7 +34,7 @@ for i, shot in shots.iterrows():
     shots_model.at[i, 'C'] = abs(shot['positions'][0]['y'] - 50)
 
     x = shots_model.at[i, 'X'] * 105 / 100
-    y = shots_model.at[i, 'Y'] * 65 / 100
+    y = shots_model.at[i, 'C'] * 65 / 100
 
     shots_model.at[i, 'Distance'] = np.sqrt( x**2 + y ** 2)
 
@@ -89,7 +88,6 @@ plt.gca().set_aspect('equal', adjustable='box')
 plt.show()
 """
 
-
 """
 minutes_played = np.array([120, 452, 185, 708, 340, 561])
 goals_scored = np.array([1, 6, 3, 7, 3, 5])
@@ -126,8 +124,37 @@ for i, mp in enumerate(minutes_played):
 
 """
 
+"""
+b=[3, -3]
 
 x = np.arange(5, step=0.1)
 
-y =1 / (1 + np.exp(-b[0] -b[1]*x) )
+y = 1 / (1 + np.exp(-b[0] -b[1]*x) )
+
+fig, ax = plt.subplots(num=1)
+
+plt.ylim((-0.05, 1.05))
+plt.xlim((0, 5))
+
+ax.set_ylabel('y')
+ax.set_xlabel('x')
+
+ax.plot(x, y, linestyle='solid', color='black')
+
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+plt.show()
+
+"""
+
+shots_200 = shots_model.iloc[:200]
+
+fig, ax = plt.subplots(num=1)
+ax.plot(shots_200['Angle']*180/np.pi, shots_200['Goal'], linestyle='none', marker='.', markerSize=12, color='black')
+ax.set_ylabel('Goal scored')
+ax.set_xlabel('Shot angle (degrees)')
+plt.ylim((-0.05, 1.05))
+ax.set_yticks([0, 1])
+ax.set_yticklabels(['No', 'Yes'])
+plt.show()
 
