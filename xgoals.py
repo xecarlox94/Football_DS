@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 
+from viz import pitch_viz as pviz
+
 import json
 
 with open('data/wy_scout/events/events_England.json') as f:
@@ -14,17 +16,17 @@ with open('data/wy_scout/events/events_England.json') as f:
 train = pd.DataFrame(data)
 shots = train[ train['subEventName'] == 'Shot']
 
-shots_model = pd.DataFrame(columns=['Goal', 'X', 'Y', 'C', 'Distance', 'Angle'])
+shots_model = pd.DataFrame(columns=['Goal', 'X', 'Y'])
 
 for i, shot in shots.iterrows():
     header = False
-    goal = False
+    goal = 0
     for tag in shot['tags']:
         if tag['id'] == 403:
             header = True
 
         if tag['id'] == 101:
-            goal = True
+            goal = 1
 
     if header:
         continue
@@ -46,6 +48,9 @@ for i, shot in shots.iterrows():
     shots_model.at[i, 'Angle'] = a
 
     shots_model.at[i, 'Goal'] = goal
+    
+    
+goals_all = shots_model[shots_model['Goal'] == 1]
 
 
 """
@@ -131,23 +136,12 @@ x = np.arange(5, step=0.1)
 
 y = 1 / (1 + np.exp(-b[0] -b[1]*x) )
 
-fig, ax = plt.subplots(num=1)
-
-plt.ylim((-0.05, 1.05))
-plt.xlim((0, 5))
-
-ax.set_ylabel('y')
-ax.set_xlabel('x')
-
-ax.plot(x, y, linestyle='solid', color='black')
-
-ax.spines['top'].set_visible(False)
-ax.spines['right'].set_visible(False)
-plt.show()
+"""
 
 """
 
 shots_200 = shots_model.iloc[:200]
+
 
 fig, ax = plt.subplots(num=1)
 ax.plot(shots_200['Angle']*180/np.pi, shots_200['Goal'], linestyle='none', marker='.', markerSize=12, color='black')
@@ -156,5 +150,34 @@ ax.set_xlabel('Shot angle (degrees)')
 plt.ylim((-0.05, 1.05))
 ax.set_yticks([0, 1])
 ax.set_yticklabels(['No', 'Yes'])
+
+plt.show()
+
+""" 
+
+
+shotcount_dist = np.histogram(shots_model['Angle']*180/np.pi, bins=40, range=[0, 150])
+goalcount_dist = np.histogram(goals_all['Angle']*180/np.pi, bins=40, range=[0, 150])
+prob_goal = np.divide(goalcount_dist[0], shotcount_dist[0])
+angle = shotcount_dist[1]
+midangle = (angle[:-1] + angle[1:])/2
+fig, ax = plt.subplots(num=2)
+ax.plot(midangle, prob_goal, linestyle='none', marker='.', markerSize=12, color='black')
+ax.set_ylabel('Probability scoring')
+ax.set_xlabel('Angle')
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+
+
+test_model = smf.glm(formula="Goal ~ Angle", data=shots_model, family=sm.families.Binomial()).fit()
+print(test_model.summary())
+b=test_model.params
+
+b = test_model.params
+
+xGprob = 1 / (1 + np.exp(b[0] + b[1] * midangle * np.pi/ 180))
+ax.plot(midangle, xGprob, linestyle='solid', color='black')
+
+
 plt.show()
 
