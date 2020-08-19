@@ -93,69 +93,6 @@ plt.gca().set_aspect('equal', adjustable='box')
 plt.show()
 """
 
-"""
-minutes_played = np.array([120, 452, 185, 708, 340, 561])
-goals_scored = np.array([1, 6, 3, 7, 3, 5])
-
-minutes_model = pd.DataFrame()
-minutes_model = minutes_model.assign(minutes=minutes_played)
-minutes_model = minutes_model.assign(goals=goals_scored)
-
-
-fig, ax = plt.subplots(num=1)
-ax.plot(minutes_played, goals_scored, linestyle='none', marker='.', markerSize=12, color='black')
-ax.set_ylabel('Goals Scored')
-ax.set_xlabel('Minutes Played')
-ax.spines['top'].set_visible(False)
-ax.spines['right'].set_visible(False)
-plt.xlim((0, 750))
-plt.ylim((0, 8))
-
-
-a=0
-
-model_fit = smf.ols(formula='goals_scored ~ minutes_played - 1', data=minutes_model).fit()
-print(model_fit.summary())
-[b] = model_fit.params
-
-
-x = np.arange(800, step=0.1)
-y = a + b * x
-
-ax.plot(x,y, color='black')
-
-for i, mp in enumerate(minutes_played):
-    ax.plot([mp, mp], [goals_scored[i], a+b*mp], color='red')
-
-"""
-
-"""
-b=[3, -3]
-
-x = np.arange(5, step=0.1)
-
-y = 1 / (1 + np.exp(-b[0] -b[1]*x) )
-
-"""
-
-"""
-
-shots_200 = shots_model.iloc[:200]
-
-
-fig, ax = plt.subplots(num=1)
-ax.plot(shots_200['Angle']*180/np.pi, shots_200['Goal'], linestyle='none', marker='.', markerSize=12, color='black')
-ax.set_ylabel('Goal scored')
-ax.set_xlabel('Shot angle (degrees)')
-plt.ylim((-0.05, 1.05))
-ax.set_yticks([0, 1])
-ax.set_yticklabels(['No', 'Yes'])
-
-plt.show()
-
-""" 
-
-
 shotcount_dist = np.histogram(shots_model['Angle']*180/np.pi, bins=40, range=[0, 150])
 goalcount_dist = np.histogram(goals_all['Angle']*180/np.pi, bins=40, range=[0, 150])
 prob_goal = np.divide(goalcount_dist[0], shotcount_dist[0])
@@ -170,8 +107,7 @@ ax.spines['right'].set_visible(False)
 
 
 test_model = smf.glm(formula="Goal ~ Angle", data=shots_model, family=sm.families.Binomial()).fit()
-print(test_model.summary())
-b=test_model.params
+#print(test_model.summary())
 
 b = test_model.params
 
@@ -181,3 +117,47 @@ ax.plot(midangle, xGprob, linestyle='solid', color='black')
 
 plt.show()
 
+shotcount_dist = np.histogram(shots_model['Distance'], bins=40, range=[0, 55])
+goalcount_dist = np.histogram(goals_all['Distance'], bins=40, range=[0, 55])
+prob_goal = np.divide(goalcount_dist[0], shotcount_dist[0])
+distance = shotcount_dist[1]
+middistance = (distance[:-1] + distance[1:]) / 2
+fig, ax = plt.subplots(num=3)
+ax.plot(middistance, prob_goal, linestyle='none', marker='.', markerSize=12, color='black')
+ax.set_xlabel('Distance')
+ax.set_ylabel('Probability')
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+
+
+test_model = smf.glm(formula="Goal ~ Distance", data=shots_model, family=sm.families.Binomial()).fit()
+print(test_model.summary())
+b = test_model.params
+
+xGprob = 1 / (1 + np.exp(b[0] + b[1] * middistance))
+ax.plot(middistance, xGprob, linestyle='solid', color='black')
+
+plt.show()
+
+
+model_variables = ['Angle', 'Distance']
+model = ''
+for v in model_variables[:-1]:
+    model = model + v + ' +'
+model = model + model_variables[-1]
+
+
+test_model = smf.glm(formula="Goal ~ Angle + Distance", data=shots_model, family=sm.families.Binomial()).fit()
+print(test_model.summary())
+b = test_model.params
+
+def calculatexG(sh):
+    bsum = b[0]
+    for i, v in enumerate(model_variables):
+        bsum = bsum + b[i + 1] * sh[v]
+    xG = 1 / (1 + np.exp(bsum))
+    return xG
+
+
+xG = shots_model.apply(calculatexG, axis=1)
+shots_model = shots_model.assign(xG=xG)
