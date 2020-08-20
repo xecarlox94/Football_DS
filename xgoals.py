@@ -93,8 +93,8 @@ plt.gca().set_aspect('equal', adjustable='box')
 plt.show()
 """
 
-shotcount_dist = np.histogram(shots_model['Angle']*180/np.pi, bins=40, range=[0, 150])
-goalcount_dist = np.histogram(goals_all['Angle']*180/np.pi, bins=40, range=[0, 150])
+shotcount_dist = np.histogram(shots_model['Angle']*180/np.pi, bins=40, range=[0, 180])
+goalcount_dist = np.histogram(goals_all['Angle']*180/np.pi, bins=40, range=[0, 180])
 prob_goal = np.divide(goalcount_dist[0], shotcount_dist[0])
 angle = shotcount_dist[1]
 midangle = (angle[:-1] + angle[1:])/2
@@ -140,14 +140,14 @@ ax.plot(middistance, xGprob, linestyle='solid', color='black')
 plt.show()
 
 
-model_variables = ['Angle', 'Distance']
+model_variables = ['Angle']
 model = ''
 for v in model_variables[:-1]:
     model = model + v + ' +'
 model = model + model_variables[-1]
 
 
-test_model = smf.glm(formula="Goal ~ Angle + Distance", data=shots_model, family=sm.families.Binomial()).fit()
+test_model = smf.glm(formula="Goal ~ Angle", data=shots_model, family=sm.families.Binomial()).fit()
 print(test_model.summary())
 b = test_model.params
 
@@ -161,3 +161,26 @@ def calculatexG(sh):
 
 xG = shots_model.apply(calculatexG, axis=1)
 shots_model = shots_model.assign(xG=xG)
+
+
+pgoald_2d = np.zeros((65, 65))
+
+for x in range(65):
+    for y in range(65):
+        sh = dict()
+        a = np.arctan(7.32 *x /(x**2 + abs(y-65/2)**2 - (7.32/2)**2))
+        if a < 0:
+            a = np.pi + a
+        sh['Angle'] = a
+        sh['Distance'] = np.sqrt(x**2 + abs(y-65/2)**2)
+        pgoald_2d[x, y] = calculatexG(sh)
+
+fig, ax, _ = pviz.createGoalMouthPitch()
+
+pos = ax.imshow(pgoald_2d, extent=[-1, 65, 65, -1], aspect='auto', cmap=plt.cm.Reds, vmin=0, vmax=1)
+fig.colorbar(pos, ax=ax)
+ax.set_title('Probability of goal')
+plt.xlim((0,66))
+plt.ylim((-3, 35))
+plt.gca().set_aspect('equal', adjustable='box')
+plt.show()
