@@ -153,14 +153,14 @@ for i, e in events.iterrows():
             possession.start_chain_if_necessary(i, team_id)
             possession.end_chain(i)
         else:
-            possession.start_chain(i, team_id)
+            possession.start_chain_if_necessary(i, team_id)
             
     if type_id == 17: # pressure
         p_team = possession.get_opposition_team_id(team_id)
         possession.start_chain_if_necessary(i, p_team)
         
     if type_id == 2: # ball recovery
-        possession.start_chain(i, team_id)
+        possession.start_chain_if_necessary(i, team_id)
     
     if type_id == 30: # pass
         p_type = e['pass_type_id']
@@ -168,13 +168,29 @@ for i, e in events.iterrows():
         if p_type in [61, 62, 63, 65, 67]: # set piece pass
             possession.start_chain(i, team_id, poss_init=True)
         if p_type in [64, 66]: # interception, recovery
-            possession.start_chain(i, team_id)
+            possession.start_chain_if_necessary(i, team_id)
         possession.start_chain_if_necessary(i, team_id)
         
     
     if type_id == 4:
         d_outcome = e['duel_outcome_id']
-        print(i)
+        d_type = int(e['duel_type_id'])
+        
+        if d_type == 10:
+            p_team = possession.get_opposition_team_id(team_id)
+            possession.start_chain_if_necessary(i, p_team)
+            continue
+        
+        if not np.isnan(d_outcome):
+            d_outcome = int(d_outcome)
+            print(d_type, d_outcome)
+        else:
+            print(d_type)
+        
+        """
+        if d_type == 10:
+        print(i, e['duel_type_id'])
+        """
         
         if d_outcome in [4, 15, 16]:
             possession.start_chain(i, team_id)
