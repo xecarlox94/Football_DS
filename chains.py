@@ -100,18 +100,7 @@ for i, e in events.iterrows():
         
     if type_id in [35, 18, 5]: 
         continue
-
-    # SHOTS
-    # add possession session to all shots from set pieces: IMPORTANT
-
-    # other events:
-    # dispossesed
-    # duel
     
-    """
-    if type_id == 40: # injury stoppage
-        possession.end_chain(i, merge_pre=True)
-    """
     if type_id == 14: # dribble
         possession.start_chain_if_necessary(i, team_id)
         
@@ -141,26 +130,41 @@ for i, e in events.iterrows():
         if gk_evt_type == 25 and gk_evt_outcome != 50:
             possession.start_chain(i, team_id)
             
-        if gk_evt_type == 27 and gk_evt_outcome != 50:
+        elif gk_evt_type == 34:
+            if gk_evt_outcome in [16, 17]:
+                possession.start_chain(i, team_id)
+            else:
+                p_team = possession.get_opposition_team_id(team_id)
+                possession.start_chain_if_necessary(i, p_team)
+                
+        elif gk_evt_type == 34 and gk_evt_outcome != 50:
+            if gk_evt_outcome == 47:
+                possession.start_chain_if_necessary(i, p_team)
+                
             if gk_evt_outcome == 48:
-                possession.single_event_chain(i, team_id)
+                possession.end_chain(i)
+            
+        elif gk_evt_type == 27 and gk_evt_outcome != 50:
+            if gk_evt_outcome == 48:
+                possession.start_chain_if_necessary(i, team_id)
+                possession.end_chain(i)
             else:
                 possession.start_chain(i, team_id)
     
     if type_id == 10: # interception
         i_outcome_id = e['interception_outcome_id']
-        if i_outcome_id not in [15, 16, 4]:
-            possession.start_chain_if_necessary(i, team_id)
-            possession.end_chain(i)
+        if i_outcome_id in [15, 16, 4, 17]:
+            possession.start_chain(i, team_id)
         else:
             possession.start_chain_if_necessary(i, team_id)
+            possession.end_chain(i)
             
     if type_id == 17: # pressure
         p_team = possession.get_opposition_team_id(team_id)
         possession.start_chain_if_necessary(i, p_team)
         
     if type_id == 2: # ball recovery
-        possession.start_chain_if_necessary(i, team_id)
+        possession.start_chain(i, team_id)
     
     if type_id == 30: # pass
         p_type = e['pass_type_id']
@@ -168,11 +172,11 @@ for i, e in events.iterrows():
         if p_type in [61, 62, 63, 65, 67]: # set piece pass
             possession.start_chain(i, team_id, poss_init=True)
         if p_type in [64, 66]: # interception, recovery
-            possession.start_chain_if_necessary(i, team_id)
+            possession.start_chain(i, team_id)
         possession.start_chain_if_necessary(i, team_id)
         
     
-    if type_id == 4:
+    if type_id == 4: # duel
         d_outcome = e['duel_outcome_id']
         d_type = int(e['duel_type_id'])
         
@@ -186,21 +190,19 @@ for i, e in events.iterrows():
             print(d_type, d_outcome)
         else:
             print(d_type)
-        
-        """
-        if d_type == 10:
-        print(i, e['duel_type_id'])
-        """
-        
-        if d_outcome in [4, 15, 16]:
-            possession.start_chain(i, team_id)
             
         if d_outcome in [1, 13, 14]:
             p_team = possession.get_opposition_team_id(team_id)
             possession.start_chain(i, p_team)
+        else:
+            possession.start_chain(i, team_id)
             
+    # block
+    # 50/50
     
     """
+    
+    
     if type_id == 22:
         is_offensive = e['foul_committed_offensive']
         
