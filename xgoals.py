@@ -177,7 +177,7 @@ for x in range(65):
 
 fig, ax, _ = pviz.createGoalMouthPitch()
 
-pos = ax.imshow(pgoald_2d, extent=[-1, 65, 65, -1], aspect='auto', cmap=plt.cm.Reds, vmin=0, vmax=1)
+pos = ax.imshow(pgoald_2d, extent=[-1, 65, 65, -1], aspect='auto', cmap=plt.cm.Reds, vmin=0, vmax=0.5)
 fig.colorbar(pos, ax=ax)
 ax.set_title('Probability of goal')
 plt.xlim((0,66))

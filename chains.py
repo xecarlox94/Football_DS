@@ -79,11 +79,6 @@ class Possession:
             if last_poss['end'] < start - 1:
                 last_poss['end'] = start - 1
         self.set_values(start, p_team, poss_init)
-        
-
-    def single_event_chain(self, event_number, p_team, poss_init=False):
-        self.start_chain(event_number, p_team, poss_init)
-        self.end_chain(event_number)
 
     def append_poss_chain(self):
         if self.is_chain_complete():
@@ -124,7 +119,8 @@ for i, e in events.iterrows():
         possession.start_chain_if_necessary(i, team_id)
     
     if type_id == 9: # clearance
-        possession.single_event_chain(i, team_id)
+        possession.start_chain_if_necessary(i, team_id)
+        possession.end_chain(i)
         
         
     if type_id == 16: # shots
@@ -154,7 +150,8 @@ for i, e in events.iterrows():
     if type_id == 10: # interception
         i_outcome_id = e['interception_outcome_id']
         if i_outcome_id not in [15, 16, 4]:
-            possession.single_event_chain(i, team_id)
+            possession.start_chain_if_necessary(i, team_id)
+            possession.end_chain(i)
         else:
             possession.start_chain(i, team_id)
             
@@ -173,6 +170,19 @@ for i, e in events.iterrows():
         if p_type in [64, 66]: # interception, recovery
             possession.start_chain(i, team_id)
         possession.start_chain_if_necessary(i, team_id)
+        
+    
+    if type_id == 4:
+        d_outcome = e['duel_outcome_id']
+        print(i)
+        
+        if d_outcome in [4, 15, 16]:
+            possession.start_chain(i, team_id)
+            
+        if d_outcome in [1, 13, 14]:
+            p_team = possession.get_opposition_team_id(team_id)
+            possession.start_chain(i, p_team)
+            
     
     """
     if type_id == 22:
