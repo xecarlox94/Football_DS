@@ -2,9 +2,9 @@ import statsBomb_IO as sio
 import pandas as pd
 import numpy as np
 
-competition = sio.getCompetitions()[0] #0 #23
+competition = sio.getCompetitions()[23] #0 #23
 
-match = sio.getMatches(competition).iloc[0] #0 #7
+match = sio.getMatches(competition).iloc[7] #0 #7
 
 team_ids = [match['home_team_home_team_id'],match['away_team_away_team_id']]
 
@@ -104,6 +104,9 @@ for i, e in events.iterrows():
     if type_id == 14: # dribble
         possession.start_chain_if_necessary(i, team_id)
         
+    if type_id == 28: # shield
+        possession.start_chain_if_necessary(i, team_id)
+        
     if type_id == 43: # carry
         possession.start_chain_if_necessary(i, team_id)
     
@@ -111,6 +114,12 @@ for i, e in events.iterrows():
         possession.start_chain_if_necessary(i, team_id)
         possession.end_chain(i)
         
+    if type_id == 6: # block
+        isBlockOff = e['block_offensive']
+        p_team = possession.get_opposition_team_id(team_id)
+        if not np.isnan(isBlockOff) and isBlockOff == True:
+            p_team = team_id
+        possession.start_chain_if_necessary(i, p_team)
         
     if type_id == 16: # shots
         shot_type = e['shot_type_id']
@@ -187,42 +196,54 @@ for i, e in events.iterrows():
         
         if not np.isnan(d_outcome):
             d_outcome = int(d_outcome)
-            print(d_type, d_outcome)
-        else:
-            print(d_type)
+            
+        p_team = team_id
             
         if d_outcome in [1, 13, 14]:
             p_team = possession.get_opposition_team_id(team_id)
-            possession.start_chain(i, p_team)
-        else:
-            possession.start_chain(i, team_id)
+        
+        possession.start_chain_if_necessary(i, p_team)
+    
+    
+    if type_id == 33:
+        ff_outcome = int(e['50_50_outcome_id'])
+        
+        p_team = team_id
+        
+        if ff_outcome in [1, 2]:
+            p_team = possession.get_opposition_team_id(team_id)
+        
+        possession.start_chain(i, p_team)
             
-    # block
-    # 50/50
+        print(i, int(e['50_50_outcome_id']), e['50_50_outcome_name'])
     
     """
-    
-    
-    if type_id == 22:
+    if type_id == 22: # foul commited
+        fw_adv = e['foul_won_advantage']
+        print(e['foul_committed_advantage'])
         is_offensive = e['foul_committed_offensive']
         
-        if not is_offensive:
-            p_team = team_id
-        else:
-            p_team = possession.get_opposition_team_id(team_id)
-            
-        possession.start_chain_if_necessary(i, p_team)
+        #print(i + 1, 'commited', is_offensive)
         
-    if type_id == 21:
+        #foul_committed_type_id
+        #foul_committed_advantage
+        #foul_committed_offensive
+            
+        #possession.start_chain_if_necessary(i, p_team)
+        
+    if type_id == 21: # foul commited
+        fw_adv = e['foul_won_advantage']
+        print(e['foul_won_advantage'])
         is_defensive = e['foul_won_defensive']
         
-        if not is_defensive:
-            p_team = possession.get_opposition_team_id(team_id)
-        else:
-            p_team = team_id
+        #print(i, 'won     ', is_defensive)
+        
+        #foul_won_advantage
+        #foul_won_defensive
             
-        possession.start_chain_if_necessary(i, p_team)
-    """  
+        #possession.start_chain_if_necessary(i, p_team)
+    
+    """
     
 
 df_poss = possession.dataframe()
