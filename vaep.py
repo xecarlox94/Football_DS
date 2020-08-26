@@ -39,8 +39,8 @@ competitions = [
 #     'Germany',
 #     'Italy',
 #     'Spain',
-    'European Championship',
-#     'World Cup'
+#     'European Championship',
+     'World Cup'
 ]
 
 
@@ -169,3 +169,79 @@ for column_label in columns_labels:
     predictions = models[column_label].predict_proba(df_features)[:,1]
     dfs_predictions[column_label] = pd.Series(predictions)
 df_predictions = pd.concat(dfs_predictions, axis=1)
+
+
+dfs_game_ids = []
+for _, game in tqdm(df_games.iterrows(), total=len(df_games)):
+    game_id = game['game_id']
+    df_actions = pd.read_hdf(data_dir+ 'spadl.h5', key=f'actions/game_{game_id}')
+    dfs_game_ids.append(df_actions['game_id'])
+df_game_ids = pd.concat(dfs_game_ids, axis=0).astype('int').reset_index(drop=True)
+
+df_predictions = pd.concat([df_predictions, df_game_ids], axis=1)
+
+
+df_predictions_per_game = df_predictions.groupby('game_id')
+
+
+for game_id, df_predictions in tqdm(df_predictions_per_game):
+    df_predictions = df_predictions.reset_index(drop=True)
+    df_predictions[columns_labels].to_hdf(data_dir+ 'predictions.h5', key=f'game_{game_id}')
+    
+    
+    
+df_players = pd.read_hdf(data_dir+ 'spadl.h5', 'players')
+df_teams = pd.read_hdf(data_dir+ 'spadl.h5', 'teams')
+
+
+
+dfs_values = []
+for _, game in tqdm(df_games.iterrows(), total=len(df_games)):
+    game_id = game['game_id']
+    df_actions = pd.read_hdf(data_dir + 'spadl.h5', f'actions/game_{game_id}')
+    df_actions = (df_actions
+                  .merge(df_actiontypes, how='left')
+                  .merge(df_results, how='left')
+                  .merge(df_bodyparts, how='left')
+                  .merge(df_players, how='left')
+                  .merge(df_teams, how='left')
+                  .reset_index(drop=True))
+    
+    
+    df_predictions = pd.read_hdf(data_dir+ 'predictions.h5', f'game_{game_id}')
+    df_values = value(df_actions, df_predictions['scores'], df_predictions['concedes'])
+    
+    df_all = pd.concat([df_actions, df_predictions, df_values], axis=1)
+    dfs_values.append(df_all)
+    
+    
+df_values = (pd.concat(dfs_values)
+             .sort_values(['game_id', 'period_id', 'time_seconds'])
+             .reset_index(drop=True))
+
+df_values[
+    ['short_name', 'scores', 'concedes', 'offensive_value', 'defensive_value', 'vaep_value']
+].head(10)
+
+
+df_ranking = (df_values[['player_id', 'team_name', 'short_name', 'vaep_value']]
+              .groupby(['player_id', 'team_name', 'short_name'])
+              .agg(vaep_count=('vaep_value', 'count'), vaep_sum=('vaep_value', 'sum'))
+              .sort_values('vaep_sum', ascending=False)
+              .reset_index())
+
+
+df_player_games = pd.read_hdf(data_dir + 'spadl.h5', 'player_games')
+df_player_games = df_player_games[df_player_games['game_id'].isin(df_games['game_id'])]
+
+
+df_minutes_played = (df_player_games[['player_id', 'minutes_played']]
+                     .groupby('player_id')
+                     .sum()
+                     .reset_index())
+
+
+df_ranking_p90 = df_ranking.merge(df_minutes_played)
+df_ranking_p90 = df_ranking_p90[df_ranking_p90['minutes_played'] > 90 * 10]
+df_ranking_p90['vaep_ranking'] = df_ranking_p90['vaep_sum'] * 90 / df_ranking_p90['minutes_played']
+df_ranking_p90 = df_ranking_p90.sort_values('vaep_ranking', ascending=False)
