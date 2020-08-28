@@ -133,7 +133,15 @@ df_features[action_id:action_id+1][location_cols]
 cols = [f'{col}_{delay}' for delay in reversed(range(0, delays)) for col in ['period_id', 'time_seconds', 'type_name', 'result_name', 'bodypart_name']]
 df_features[action_id:action_id+1][cols]
 
-"""
+
 def add_same_team(df_features, delays):
     for step in range(1, delays):
-"""     
+        df_features[f'team_{step}'] = df_features['team_id_0'] == df_features[f'team_id_{step}']
+        
+add_same_team(df_features, delays)
+
+
+def invert_coordinates(df_features, delays):
+    for step in range(1, delays):
+        for side in ['start', 'end']:
+            df_features.loc[~(df_features[f'team'])]
