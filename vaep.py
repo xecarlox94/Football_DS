@@ -39,8 +39,8 @@ competitions = [
 #     'Germany',
 #     'Italy',
 #     'Spain',
-#     'European Championship',
-     'World Cup'
+    'European Championship',
+#    'World Cup'
 ]
 
 
@@ -48,8 +48,6 @@ dfs_matches = []
 for competition in competitions:
     comp_name = competition.replace(' ', '_')
     file_matches = data_dir + f'matches_{comp_name}.json'
-    file_events = data_dir + f'events_{comp_name}.json'
-    json_events = read_json_file(file_events)
     json_matches = read_json_file(file_matches)
     df_matches = pd.read_json(json_matches)
     dfs_matches.append(df_matches)
@@ -242,6 +240,6 @@ df_minutes_played = (df_player_games[['player_id', 'minutes_played']]
 
 
 df_ranking_p90 = df_ranking.merge(df_minutes_played)
-df_ranking_p90 = df_ranking_p90[df_ranking_p90['minutes_played'] > 90 * 10]
+df_ranking_p90 = df_ranking_p90[df_ranking_p90['minutes_played'] > 90 * 1]
 df_ranking_p90['vaep_ranking'] = df_ranking_p90['vaep_sum'] * 90 / df_ranking_p90['minutes_played']
 df_ranking_p90 = df_ranking_p90.sort_values('vaep_ranking', ascending=False)

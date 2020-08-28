@@ -108,9 +108,9 @@ def add_time_played(df_actions):
                                  (df_actions['period_id'] >= 3) * (15 * 60) +
                                  (df_actions['period_id'] == 4) * (15 * 60)
                                  )
-    
-add_distance_features(df_actions)
-add_time_played(df_actions)
+
+#add_distance_features(df_actions)
+#add_time_played(df_actions)
 
 
 delays = 3
@@ -123,25 +123,161 @@ def create_delayed_features(df_actions, features_to_delay, delays):
     df_delay = [df_actions[features_to_delay].shift(step).add_suffix(f'_{step}') for step in range(0, delays)]
     return pd.concat(df_delay, axis=1)
 
-df_features = create_delayed_features(df_actions, features_to_delay, delays)
+#df_features = create_delayed_features(df_actions, features_to_delay, delays)
 
-
-location_cols = [ f'{side}_{xy}_{delay}' for delay in reversed(range(0, delays)) for xy in ['x', 'y']for side in ['start', 'end']]
-df_features[action_id:action_id+1][location_cols]
-
-
-cols = [f'{col}_{delay}' for delay in reversed(range(0, delays)) for col in ['period_id', 'time_seconds', 'type_name', 'result_name', 'bodypart_name']]
-df_features[action_id:action_id+1][cols]
 
 
 def add_same_team(df_features, delays):
     for step in range(1, delays):
         df_features[f'team_{step}'] = df_features['team_id_0'] == df_features[f'team_id_{step}']
-        
-add_same_team(df_features, delays)
+
+#add_same_team(df_features, delays)
 
 
 def invert_coordinates(df_features, delays):
     for step in range(1, delays):
         for side in ['start', 'end']:
-            df_features.loc[~(df_features[f'team'])]
+            df_features.loc[~(df_features[f'team_{step}']), f'{side}_x_{step}'] = PITCH_LENGTH - df_features[f'{side}_x_{step}']
+            df_features.loc[~(df_features[f'team_{step}']), f'{side}_y_{step}'] = PITCH_WIDTH - df_features[f'{side}_y_{step}']
+
+#invert_coordinates(df_features, delays)
+
+def add_location_features(df_features, delays):
+    for step in range(0, delays):
+        for side in ['start', 'end']:
+            key_x = f'{side}_x'
+            df_features[f'{key_x}_norm_{step}'] = df_features[f'{key_x}_{step}'] / PITCH_LENGTH
+
+            key_y = f'{side}_y'
+            df_features[f'{key_y}_norm_{step}'] = df_features[f'{key_y}_{step}'] / PITCH_WIDTH
+
+            diff_x = GOAL_X - df_features[f'{side}_x_{step}']
+            diff_y = abs(GOAL_Y - df_features[f'{side}_x_{step}'])
+
+            df_features[f'{side}_distance_to_goal_{step}'] = np.sqrt(diff_x ** 2 + diff_y ** 2)
+            df_features[f'{side}_angle_to_{step}'] = np.divide(diff_x, diff_y, out=np.zeros_like(diff_x), where=(diff_y != 0))
+
+            df_features[f'diff_x_{step}'] = df_features[f'end_x_{step}'] - df_features[f'start_x_{step}']
+            df_features[f'diff_y_{step}'] = df_features[f'end_y_{step}'] - df_features[f'start_y_{step}']
+            df_features[f'distance_covered_{step}'] = np.sqrt(df_features[f'diff_x_{step}'] ** 2 + df_features[f'diff_y_{step}'] ** 2)
+
+#add_location_features(df_features, delays)
+
+
+def add_sequence_pre_features(df_features, delays):
+    delay = delays -1
+    df_features['xdiff_sequence_pre'] = df_features['start_x_0'] - df_features[f'start_x_{delay}']
+    df_features['ydiff_sequence_pre'] = df_features['start_y_0'] - df_features[f'start_y_{delay}']
+    df_features['time_sequence_pre'] = df_features['time_played_0'] - df_features[f'time_played_{delay}']
+
+#add_sequence_pre_features(df_features, delays)
+
+def add_sequence_post_features(df_features, delays):
+    delay = delays - 1
+    df_features['xdiff_sequence_post'] = df_features['end_x_0'] - df_features[f'start_x_{delay}']
+    df_features['ydiff_sequence_post'] = df_features['end_y_0'] - df_features[f'start_y_{delay}']
+
+#add_sequence_post_features(df_features, delays)
+
+def create_features_match(df_actions, features_to_delay, delays):
+    df_action_features = add_action_type_dummies(df_actions)
+    add_time_played(df_action_features)
+    df_gamestate_features = create_delayed_features(df_action_features, features_to_delay, delays)
+    add_same_team(df_gamestate_features, delays)
+    invert_coordinates(df_gamestate_features, delays)
+    add_location_features(df_gamestate_features, delays)
+    add_sequence_pre_features(df_gamestate_features, delays)
+    add_sequence_post_features(df_gamestate_features, delays)
+    return df_gamestate_features
+
+
+def label_scores(df_actions, nr_actions):
+    """
+    This functiondf_actions determines whether a goal was scored by the team possessing
+    the ball within the next x actions
+    """
+    # merging goals, owngoals and team_ids
+
+    goals = df_actions['type_name'].str.contains('shot') & (
+        df_actions['result_id'] == 1
+    )
+    owngoals = df_actions['type_name'].str.contains('shot') & (
+        df_actions['result_id'] == 2
+    )
+    y = pd.concat([goals, owngoals, df_actions['team_id']], axis=1)
+    y.columns = ['goal', 'owngoal', 'team_id']
+
+    # adding future results
+    for i in range(1, nr_actions):
+        for col in ['team_id', 'goal', 'owngoal']:
+            shifted = y[col].shift(-i)
+            shifted[-i:] = y[col][len(y) - 1]
+            y[f'{col}+{i}'] = shifted
+
+    scores = y['goal']
+    for i in range(1, nr_actions):
+        goal_scored = y[f'goal+{i}'] & (y[f'team_id+{i}'] == y['team_id'])
+        own_goal_opponent = y[f'owngoal+{i}'] & (y[f'team_id+{i}'] != y['team_id'])
+        scores = scores | goal_scored | own_goal_opponent
+
+    return pd.DataFrame(scores, columns=['scores'])
+
+
+def label_concedes(df_actions, nr_actions):
+    """
+    This function determines whether a goal was scored by the team not
+    possessing the ball within the next x actions
+    """
+    # merging goals,owngoals and team_ids
+    goals = df_actions['type_name'].str.contains('shot') & (
+            df_actions['result_id'] == 1
+    )
+    owngoals = df_actions['type_name'].str.contains('shot') & (
+            df_actions['result_id'] == 2
+    )
+    y = pd.concat([goals, owngoals, df_actions['team_id']], axis=1)
+    y.columns = ['goal', 'owngoal', 'team_id']
+
+    # adding future results
+    for i in range(1, nr_actions):
+        for col in ['team_id', 'goal', 'owngoal']:
+            shifted = y[col].shift(-i)
+            shifted[-i:] = y[col][len(y) - 1]
+            y[f'{col}+{i}'] = shifted
+
+    concedes = y['owngoal']
+    for i in range(1, nr_actions):
+        goal_opponent = y[f'goal+{i}'] & (y[f'team_id+{i}'] != y['team_id'])
+        own_goal_team = y[f'owngoal+{i}'] & (y[f'team_id+{i}'] == y['team_id'])
+        concedes = concedes | goal_opponent | own_goal_team
+
+    return pd.DataFrame(concedes, columns=['concedes'])
+
+
+def get_df_labels(df_actions, nr_actions=10):
+    l_scores = label_scores(df_actions, nr_actions)
+    l_concedes = label_concedes(df_actions, nr_actions)
+    return pd.concat([l_scores, l_concedes], axis=1)
+
+
+df_games = pd.read_hdf(data_dir+ 'spadl.h5', key='games')
+
+
+for _, game in tqdm(df_games.iterrows(), total=len(df_games)):
+    game_id = game['game_id']
+
+    with pd.HDFStore(data_dir +'spadl.h5') as spadlstore:
+        df_actions = spadlstore.select(f'actions/game_{game_id}')
+        df_actions = (
+            df_actions.merge(spadlstore['actiontypes'], how='left')
+            .merge(spadlstore['results'], how='left')
+            .merge(spadlstore['bodyparts'], how='left')
+            .reset_index(drop=True)
+        )
+        
+        df_features = create_features_match(df_actions, features_to_delay, delays)
+        df_features.to_hdf('features.h5', f'game_{game_id}')
+        
+        df_labels = get_df_labels(df_actions)
+        
+        df_labels.to_hdf('labels.h5', f'game_{game_id}')
