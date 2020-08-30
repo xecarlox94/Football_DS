@@ -17,7 +17,10 @@ from socceraction.vaep.formula import value
 import warnings
 warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)
 
-data_dir = 'data/wy_scout/'
+import os
+curr_dir = os.getcwd()
+
+data_dir = curr_dir + '/data/wy_scout/'
 
 def read_json_file(filename):
     with open(filename, 'rb') as json_file:
@@ -39,8 +42,8 @@ competitions = [
 #     'Germany',
 #     'Italy',
 #     'Spain',
-    'European Championship',
-#    'World Cup'
+#    'European Championship',
+    'World Cup'
 ]
 
 
@@ -240,6 +243,6 @@ df_minutes_played = (df_player_games[['player_id', 'minutes_played']]
 
 
 df_ranking_p90 = df_ranking.merge(df_minutes_played)
-df_ranking_p90 = df_ranking_p90[df_ranking_p90['minutes_played'] > 90 * 1]
+df_ranking_p90 = df_ranking_p90[df_ranking_p90['minutes_played'] > 90 * 10]
 df_ranking_p90['vaep_ranking'] = df_ranking_p90['vaep_sum'] * 90 / df_ranking_p90['minutes_played']
 df_ranking_p90 = df_ranking_p90.sort_values('vaep_ranking', ascending=False)
